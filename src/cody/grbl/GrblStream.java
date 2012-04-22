@@ -3,8 +3,6 @@ package cody.grbl;
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +10,6 @@ import java.io.OutputStream;
 
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeLine;
-import cody.grbl.GrblConnection.SerialReader;
 
 import com.badlogic.gdx.math.Vector3;
 
@@ -21,27 +18,50 @@ public class GrblStream
 {
     public GrblStream(String portName, GCodeFile file) throws Exception
     {
-        super();
     	gcode = file;
         connect(portName);
+        stream(file);
     }
+    public GrblStream(String portName) throws Exception
+    {
+        connect(portName);
+        createReader();
+    }
+    
     GCodeFile gcode;
     
     SerialPort serialPort;
     public OutputStream out;
+    public InputStream in;
     public Vector3 toolPosition = new Vector3();
     public Streamer streamer;
     Updater updater;
+    Reader reader;
+    Thread updater_thread;
+    Thread streamer_thread;
+    Thread reader_thread;
     
     synchronized static void write(OutputStream out, byte[] data) throws IOException {
     	out.write(data);
     }
     
+    synchronized public void send(byte[] data) {
+    	try {
+			write(out, data);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(13);
+		}
+    }
     public boolean isHold() {
     	return is_paused;
     }
     boolean is_paused = false;
     
+    public boolean isStreaming() {
+    	return streamer != null;
+    }
     public void pause() {
     	try {
 			write(out, new byte[]{(byte) (is_paused ? '~' : '!')});
@@ -50,6 +70,59 @@ public class GrblStream
 			e.printStackTrace();
 			System.exit(4);
 		}
+    }
+
+    void stopStreamer() {
+    	if(streamer != null) {
+    		streamer.exit = true;
+    		try {
+    			streamer_thread.join();
+    		} catch (InterruptedException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    			System.exit(9);
+    		}
+    		streamer = null;
+    		streamer_thread = null;
+    		System.out.println("Streamer stopped.");
+    	}
+    }
+    
+    void createReader() {
+        reader = new Reader(in);
+        reader_thread = new Thread(reader);
+        reader_thread.start();
+    }
+    void stopReader() {
+    	if(reader != null) {
+    		reader.exit = true;
+    		try {
+    			reader_thread.join();
+    		} catch (InterruptedException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    			System.exit(9);
+    		}
+    		reader = null;
+    		reader_thread = null;
+    		System.out.println("Reader stopped.");
+    	}
+    	
+    }
+    public void stream(GCodeFile file) {
+    	Reader r = reader;
+    	stopReader();
+    	
+        streamer = new Streamer(in, out, file);
+        streamer.buffer = r.buffer;
+        streamer_thread = new Thread(streamer);
+        streamer_thread.start();
+    }
+    public void stopStream() {
+    	if(streamer != null) {
+    		stopStreamer();
+    		createReader();
+    	}
     }
     void connect ( String portName ) throws Exception
     {
@@ -67,25 +140,78 @@ public class GrblStream
                 serialPort = (SerialPort) commPort;
                 serialPort.setSerialPortParams(9600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
                 
-                InputStream in = serialPort.getInputStream();
+                in = serialPort.getInputStream();
                 out = serialPort.getOutputStream();
-                               
-                (new Thread(updater = new Updater(out))).start();
-                
-                Streamer r = streamer = new Streamer(in, out, gcode);
-                //serialPort.addEventListener(r);
-                //serialPort.notifyOnDataAvailable(true);
-                (new Thread(r)).start();
 
+                updater_thread = new Thread(updater = new Updater(out));
+                updater_thread.start();
             }
             else
             {
                 System.out.println("Error: Only serial ports are handled by this example.");
             }
-        }     
+        }
+    }
+
+    
+    public class Reader implements Runnable 
+    {
+        private InputStream in;
+        private byte[] buffer = new byte[1024];
+        public boolean exit = false;
+        
+        public Reader ( InputStream in )
+        {
+            this.in = in;
+        }
+        
+        public void run ()
+        {
+            try
+            {
+        		int data;
+        		int len = 0;
+                    while (   ( data = in.read()) > -1)
+                    {
+                        if ( (data == '\n' || data == '\r')) {
+                        	if(len > 0) {
+                            String output = new String(buffer,0,len);
+                        	len = 0;
+                    		System.out.println("GrblReader Received: " + output);
+                        	if(output.equals("ok")) {
+                        	}
+                        	else if(output.startsWith("MPos:")) {
+                            	String[] s = output.split("[\\]\\[xyz,\\s]");
+                            	toolPosition.x = Float.parseFloat(s[1]);
+                            	toolPosition.y = Float.parseFloat(s[2]);
+                            	toolPosition.z = Float.parseFloat(s[3]);
+                        	}
+                        	else if(output.startsWith("Grbl ")) {
+                        	}
+                        	else if(output.startsWith("'$' ")) {
+                        	}
+                        	else {
+                        		System.out.println("GrblReader Error: " + output);
+                        		System.exit(2);
+                        		return;
+                        	}
+                        	}
+                        	if(exit)
+                        		return;
+                        }
+                        else
+                        	buffer[len++] = (byte) data;
+                    }
+            }
+            catch ( IOException e )
+            {
+                e.printStackTrace();
+                System.exit(-1);
+            }    
+        }
     }
     
-    public class Streamer implements SerialPortEventListener, Runnable 
+    public class Streamer implements Runnable 
     {
         private InputStream in;
         OutputStream out;
@@ -94,7 +220,7 @@ public class GrblStream
         public int currentLine;
         public boolean exit = false;
         
-        public Streamer ( InputStream in ,OutputStream out, GCodeFile gcode )
+        public Streamer ( InputStream in ,OutputStream out, GCodeFile gcode)
         {
             this.in = in;
             this.out = out;
@@ -106,19 +232,13 @@ public class GrblStream
             try
             {
         		int data;
-        		Thread.sleep(2000, 0);
-                while (in.available() > 0) {
-                	in.read();
-                }
                 
                 System.out.println("GrblStream: Start streaming...");
                 
                 currentLine = 0;
             	for(GCodeLine line : gcode.gcode) {
-            		if(exit)
-            			break;
             		System.out.println("GrblStream Write: " + line.getContent());
-            		write(out, (line.getContent() + "\n").getBytes());
+            		send( (line.getContent() + "\n").getBytes());
                     currentLine ++;
             		
             		int len = 0;
@@ -148,51 +268,18 @@ public class GrblStream
                         else
                         	buffer[len++] = (byte) data;
                     }
+            		if(exit) {
+                		System.out.println("GrblStream thread exit.");
+            			return;
+            		}
             	}
             }
             catch ( IOException e )
             {
                 e.printStackTrace();
                 System.exit(-1);
-            } catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}            
+            }        
         }
-        
-        
-        public void serialEvent(SerialPortEvent arg0) {
-            int data;
-          
-            try
-            {
-                int len = 0;
-                while ( ( data = in.read()) > -1 )
-                {
-                    if ( data == '\n' || data == '\r') {
-                        break;
-                    }
-                    buffer[len++] = (byte) data;
-                }
-                
-                if(len > 0){
-                String output = new String(buffer,0,len);
-                if(output.startsWith("MPos:")){
-                	String[] s = output.split("[\\]\\[xyz,\\s]");
-                	toolPosition.x = Float.parseFloat(s[1]);
-                	toolPosition.y = Float.parseFloat(s[2]);
-                	toolPosition.z = Float.parseFloat(s[3]);
-                	//System.out.println(toolPosition.x + " " + toolPosition.y + " " + toolPosition.z);
-                }
-                }
-            }
-            catch ( IOException e )
-            {
-                e.printStackTrace();
-                System.exit(-1);
-            }             
-        }
-
     }
 
     public class Updater implements Runnable 
@@ -209,27 +296,39 @@ public class GrblStream
         {
             try
             {
-        		Thread.sleep(3000, 0);
+        		Thread.sleep(1000, 0);
             	
             	while(!exit) {
-            		write(out, "?".getBytes());
+            		send( "?".getBytes());
             		Thread.sleep(1000/10, 0);
             	}
-            }
-            catch ( IOException e )
-            {
-                e.printStackTrace();
-                System.exit(-1);
-            } catch (InterruptedException e) {
+            }catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.exit(10);
 			}            
         }
     }
     
     public void dispose() {
-    	streamer.exit = updater.exit = true;
+    	stopStreamer();
+    	stopReader();
+    	
+    	if(updater != null) {
+    		updater.exit = true;
+    		try {
+    			updater_thread.join();
+    		} catch (InterruptedException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    			System.exit(9);
+    		}
+    		updater = null;
+    		updater_thread = null;
+    		System.out.println("Updater stopped.");
+    	}
     	serialPort.close();
+    	serialPort = null;
     }
 
 }
