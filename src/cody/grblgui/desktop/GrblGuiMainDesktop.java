@@ -7,6 +7,8 @@ import cody.grblgui.Main;
 
 import com.badlogic.gdx.backends.jogl.JoglApplication;
 
+import com.badlogic.gdx.backends.jogl.JoglApplicationConfiguration;
+
 public class GrblGuiMainDesktop {
 	static void displayHelp() {
 		System.out.println("usage: java -jar grblgui.jar <gcode-file> <grbl-device-file>");
@@ -19,8 +21,14 @@ public class GrblGuiMainDesktop {
 		}
 		Main main = new Main(argv[0], argv[1]);
 
-		
-		new JoglApplication(main, "grbl gui", 1280, 720, true);
+		JoglApplicationConfiguration config = new JoglApplicationConfiguration();
+		config.samples = 2;
+		config.width = 1280;
+		config.height = 720;
+		config.useGL20 = true;
+		config.title = "grbl gui";
+		//new JoglApplication(main, "grbl gui", 1280, 720, true);
+		new JoglApplication(main, config);
 	}
 
 }

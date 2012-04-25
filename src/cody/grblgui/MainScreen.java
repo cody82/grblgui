@@ -9,6 +9,7 @@ import cody.grbl.GrblStream;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -16,8 +17,16 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle;
 
-public class MainScreen implements Screen, InputProcessor{
+public class MainScreen implements Screen {
 
 	GrblStream grbl;
 	
@@ -34,7 +43,10 @@ public class MainScreen implements Screen, InputProcessor{
 	String filename;
 	String device;
 
-	float clicktimer;
+
+    Skin skin;
+    Stage ui;
+	Window window;
 	
 	float postimer;
 	Vector3 lastpos = new Vector3(0,0,0);
@@ -69,7 +81,6 @@ public class MainScreen implements Screen, InputProcessor{
 		//Gdx.gl20.glLineWidth(2);
 		
 		float t = arg0;
-		clicktimer+=t;
 		postimer+=t;
 
 		Vector3 tooltargetpos = grbl.toolPosition.cpy();
@@ -102,9 +113,9 @@ public class MainScreen implements Screen, InputProcessor{
 		spriteBatch.begin();
 		int maxlines = Gdx.graphics.getHeight() / 20 - 1;
 		for(int i = currentline;i > 0 && i > currentline - maxlines;--i) {
-			font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
+			if(i<file.gcode.size())
+				font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
 		}
-		font.draw(spriteBatch, "help: press 's' to start/stop streaming of '" + filename + "', 'p' for feed hold, 'q' to quit", 200, Gdx.graphics.getHeight() - 20);
 		font.draw(spriteBatch, "position: X" + grbl.toolPosition.x + "Y" + grbl.toolPosition.y + "Z" +grbl.toolPosition.z, Gdx.graphics.getWidth() - 220, 100);
 		font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
 		font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
@@ -114,24 +125,25 @@ public class MainScreen implements Screen, InputProcessor{
 		}
 		spriteBatch.end();
 		
-		if(clicktimer >= 0.5f)
-		{
-			clicktimer = 0;
-		for(int i=0;i<5;++i) {
-    		if(Gdx.input.isTouched(i)) {
-    			int x = Gdx.input.getX(i);
-    			int y = Gdx.input.getY(i);
-    			Vector3 pos = workspace.intersect(camera.getPickRay(x, y));
-    			tool.position = pos;
-    				if(!grbl.isStreaming()) {
-    					String cmd = "G0X" + pos.x + "Y" + pos.y + "Z" + pos.z + "\n";
-    					grbl.send(cmd.getBytes());
-    					System.out.print(cmd);
-    				}
-    		}
+		if (Gdx.input.isButtonPressed(1)) {
+			int x = Gdx.input.getX();
+			int y = Gdx.input.getY();
+			Vector3 pos = workspace.intersect(camera.getPickRay(x, y));
+			tool.position = pos;
+			if (!grbl.isStreaming()) {
+				String cmd = "G0X" + pos.x + "Y" + pos.y + "Z" + pos.z;
+				cmd_field.setText(cmd);
+			}
 		}
 		
+		
+		if(Gdx.input.isButtonPressed(2)) {
+			camera.position.x += Gdx.input.getDeltaX();
+			camera.position.y += Gdx.input.getDeltaY();
 		}
+		
+        ui.act(Math.min(arg0, 1 / 30f));
+        ui.draw();
 	}
 
 	@Override
@@ -143,6 +155,7 @@ public class MainScreen implements Screen, InputProcessor{
 		orthocam.viewportWidth = width;
 		orthocam.position.x = width/2;
 		orthocam.position.y = height/2;
+        ui.setViewport(width, height, false);
 	}
 
 	@Override
@@ -150,7 +163,7 @@ public class MainScreen implements Screen, InputProcessor{
 		// TODO Auto-generated method stub
 		
 	}
-
+	TextField cmd_field;
 	@Override
 	public void show() {
 
@@ -177,8 +190,127 @@ public class MainScreen implements Screen, InputProcessor{
 		tool = new Tool();
 		current = new Tool();
 		
-		
 
+        skin = new Skin(Gdx.files.internal("data/uiskin.json"), Gdx.files.internal("data/uiskin.png"));
+        ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false){
+        	@Override
+        	public boolean scrolled(int amount) {
+        		camera.position.z += amount * 10;
+				return super.scrolled(amount);
+        	}
+        };
+        window = new Window("Controls", skin.getStyle(WindowStyle.class));
+        window.color.a = 0.5f;
+        window.height = Gdx.graphics.getHeight() / 2;
+        window.width = Gdx.graphics.getWidth() / 4;
+        window.x = Gdx.graphics.getWidth() - window.width;
+        window.y = Gdx.graphics.getHeight() - window.height;
+        
+        final TextField file_field = new TextField(filename, skin.getStyle(TextFieldStyle.class));
+        window.add(file_field).fill(0f, 0f);
+        window.row();
+        
+        final TextButton load_button = new TextButton("Load", skin.getStyle(TextButtonStyle.class), "button-sl") {
+        	@Override
+        	public boolean touchDown(float x, float y, int pointer) {
+    			if(!grbl.isStreaming()) {
+    				filename = file_field.getText();
+    				try {
+    					file = GCodeParser.parseFile(filename);
+    					
+    					toolpath = Toolpath.fromGCode(file);
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    					System.exit(1);
+    				}
+    				catch (Exception e) {
+    					e.printStackTrace();
+    					System.exit(1);
+    				}
+    			}
+				return isChecked();
+        	}
+        };
+        window.add(load_button).fill(0f, 0f);
+        window.row();
+        
+        final TextButton stream_button = new TextButton("Start streaming", skin.getStyle(TextButtonStyle.class), "button-sl") {
+        	@Override
+        	public boolean touchDown(float x, float y, int pointer) {
+    			if(grbl.isStreaming()) {
+    				grbl.stopStream();
+    				setText("Start streaming");
+    				color.r = 1;
+    				color.g = 0;
+    				color.b = 0;
+    			}
+    			else {
+    				grbl.stream(file);
+    				setText("Stop streaming");
+    				color.r = 0;
+    				color.g = 1;
+    				color.b = 0;
+    			}
+				return isChecked();
+        	}
+        };
+        stream_button.color.r = 1;
+        stream_button.color.g = 0;
+        stream_button.color.b = 0;
+        
+        final TextButton hold_button = new TextButton("Enable feed hold", skin.getStyle(TextButtonStyle.class), "button-sl") {
+        	@Override
+        	public boolean touchDown(float x, float y, int pointer) {
+    			grbl.pause();
+    			if(grbl.isHold()) {
+    				setText("Disable feed hold");
+    				color.r = 1;
+    				color.g = 0;
+    				color.b = 0;
+    			}
+    			else {
+    				setText("Enable feed hold");
+    				color.r = 0;
+    				color.g = 1;
+    				color.b = 0;
+    			}
+				return isChecked();
+        	}
+        };
+        hold_button.color.r = 0;
+        hold_button.color.g = 1;
+        hold_button.color.b = 0;
+        
+        window.add(stream_button).fill(0f, 0f);
+        window.row();
+        window.add(hold_button).fill(0f, 0f);
+        
+        cmd_field = new TextField("", skin.getStyle(TextFieldStyle.class));
+        final TextButton cmd_button = new TextButton("Execute", skin.getStyle(TextButtonStyle.class), "button-sl") {
+        	@Override
+        	public boolean touchDown(float x, float y, int pointer) {
+        		if(!grbl.isStreaming())
+        			grbl.send((cmd_field.getText() + "\n").getBytes());
+				return isChecked();
+        	}
+        };
+        window.row();
+        window.add(cmd_field).fill(0f, 0f);
+        window.row();
+        window.add(cmd_button).fill(0f, 0f);
+        
+        final TextButton exit_button = new TextButton("Quit", skin.getStyle(TextButtonStyle.class), "button-sl") {
+        	@Override
+        	public boolean touchDown(float x, float y, int pointer) {
+        		Gdx.app.exit();
+				return isChecked();
+        	}
+        };
+        window.row();
+        window.add(exit_button).fill(0f, 0f);
+        
+        ui.addActor(window);
+        
 		try {
 			file = GCodeParser.parseFile(filename);
 
@@ -194,65 +326,7 @@ public class MainScreen implements Screen, InputProcessor{
 			System.exit(1);
 		}
 		
-		Gdx.input.setInputProcessor(this);
+		Gdx.input.setInputProcessor(ui);
 	}
 	
-	@Override
-	public boolean keyTyped(char arg0) {
-		if(arg0 == 'p') {
-			grbl.pause();
-		}
-		else if(arg0 == 's') {
-			if(grbl.isStreaming())
-				grbl.stopStream();
-			else
-				grbl.stream(file);
-		}
-		else if(arg0 == 'q') {
-			Gdx.app.exit();
-		}
-		return false;
-	}
-
-	@Override
-	public boolean keyDown(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean keyUp(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean scrolled(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchDown(int arg0, int arg1, int arg2, int arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchDragged(int arg0, int arg1, int arg2) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchMoved(int arg0, int arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchUp(int arg0, int arg1, int arg2, int arg3) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 }
