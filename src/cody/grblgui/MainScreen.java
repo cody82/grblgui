@@ -191,7 +191,7 @@ public class MainScreen implements Screen {
 		current = new Tool();
 		
 
-        skin = new Skin(Gdx.files.internal("data/uiskin.json"), Gdx.files.internal("data/uiskin.png"));
+        skin = new Skin(Gdx.files.internal("uiskin.json"), Gdx.files.internal("uiskin.png"));
         ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false){
         	@Override
         	public boolean scrolled(int amount) {
