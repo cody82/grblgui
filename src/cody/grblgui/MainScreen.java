@@ -1,5 +1,6 @@
 package cody.grblgui;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import cody.gcode.GCodeFile;
@@ -7,9 +8,7 @@ import cody.gcode.GCodeParser;
 import cody.grbl.GrblStream;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -36,6 +35,7 @@ public class MainScreen implements Screen {
 	Tool tool;
 	Tool current;
 	Toolpath toolpath;
+	Part part;
 	
 	SpriteBatch spriteBatch;
 	BitmapFont font;
@@ -102,11 +102,14 @@ public class MainScreen implements Screen {
 		int currentline = toolpath.currentLine = grbl.streamer != null ? grbl.streamer.currentLine : -1;
 		
 		Matrix4 matrix = camera.combined.cpy();
+		if(part != null)
+			part.draw(matrix);
 		workspace.draw(matrix);
 		toolpath.draw(matrix);
 		tool.draw(matrix);
 		current.draw(matrix);
-
+		
+		
 		orthocam.update();
 		spriteBatch.setProjectionMatrix(orthocam.projection);
 		spriteBatch.setTransformMatrix(orthocam.view);
@@ -164,9 +167,17 @@ public class MainScreen implements Screen {
 		
 	}
 	TextField cmd_field;
+	
 	@Override
 	public void show() {
 
+		/*try {
+			part = new Part("/home/cody/untitled.obj", "");
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+			System.exit(7);
+		}*/
+		
 		spriteBatch = new SpriteBatch();
 		font = new BitmapFont();
 		font.setColor(0, 1, 0, 1);

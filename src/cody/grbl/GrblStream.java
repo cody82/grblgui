@@ -135,21 +135,14 @@ public class GrblStream
         {
             CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
             
-            if ( commPort instanceof SerialPort )
-            {
-                serialPort = (SerialPort) commPort;
-                serialPort.setSerialPortParams(9600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+            serialPort = (SerialPort) commPort;
+            serialPort.setSerialPortParams(9600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
                 
-                in = serialPort.getInputStream();
-                out = serialPort.getOutputStream();
+            in = serialPort.getInputStream();
+            out = serialPort.getOutputStream();
 
-                updater_thread = new Thread(updater = new Updater(out));
-                updater_thread.start();
-            }
-            else
-            {
-                System.out.println("Error: Only serial ports are handled by this example.");
-            }
+            updater_thread = new Thread(updater = new Updater(out));
+            updater_thread.start();
         }
     }
 
@@ -171,7 +164,10 @@ public class GrblStream
             {
         		int data;
         		int len = 0;
-                    while (   ( data = in.read()) > -1)
+
+        		while(!exit) {
+        		while(in.available() > 0 && (!exit || len != 0)) {
+                    if (   ( data = in.read()) > -1)
                     {
                         if ( (data == '\n' || data == '\r')) {
                         	if(len > 0) {
@@ -202,6 +198,19 @@ public class GrblStream
                         else
                         	buffer[len++] = (byte) data;
                     }
+        		}
+        		if(exit && len == 0)
+        			return;
+
+        		try {
+					Thread.sleep(20, 0);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+	                System.exit(-1);
+					
+				}
+        		}
             }
             catch ( IOException e )
             {
