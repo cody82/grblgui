@@ -5,9 +5,9 @@ package cody.grblgui.desktop;
 
 import cody.grblgui.Main;
 
-import com.badlogic.gdx.backends.jogl.JoglApplication;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 
-import com.badlogic.gdx.backends.jogl.JoglApplicationConfiguration;
 
 public class GrblGuiMainDesktop {
 	static void displayHelp() {
@@ -21,14 +21,14 @@ public class GrblGuiMainDesktop {
 		}
 		Main main = new Main(argv[0], argv[1]);
 
-		JoglApplicationConfiguration config = new JoglApplicationConfiguration();
+		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.samples = 2;
 		config.width = 1280;
 		config.height = 720;
 		config.useGL20 = true;
 		config.title = "grbl gui";
 		//new JoglApplication(main, "grbl gui", 1280, 720, true);
-		new JoglApplication(main, config);
+		new LwjglApplication(main, config);
 	}
 
 }
