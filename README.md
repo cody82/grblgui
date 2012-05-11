@@ -1,4 +1,5 @@
 ![screenshot](https://github.com/cody82/grblgui/raw/master/grblgui.png)
+![screenshot](https://github.com/cody82/grblgui/raw/master/grblgui2.png)
 
 ## Requirements
 * Java 1.6
