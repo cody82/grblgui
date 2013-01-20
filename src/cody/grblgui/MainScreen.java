@@ -16,6 +16,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -202,7 +204,7 @@ public class MainScreen implements Screen {
 		current = new Tool();
 		
 
-        skin = new Skin(Gdx.files.internal("uiskin.json"), Gdx.files.internal("uiskin.png"));
+        skin = new Skin(Gdx.files.internal("data/uiskin.json"));
         ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false){
         	@Override
         	public boolean scrolled(int amount) {
@@ -210,113 +212,117 @@ public class MainScreen implements Screen {
 				return super.scrolled(amount);
         	}
         };
-        window = new Window("Controls", skin.getStyle(WindowStyle.class));
-        window.color.a = 0.5f;
-        window.height = Gdx.graphics.getHeight() / 2;
-        window.width = Gdx.graphics.getWidth() / 4;
-        window.x = Gdx.graphics.getWidth() - window.width;
-        window.y = Gdx.graphics.getHeight() - window.height;
+        window = new Window("Controls", skin);
+        window.setColor(0,0,0,0.5f);
+        window.setBounds(Gdx.graphics.getWidth() - Gdx.graphics.getHeight() / 2, Gdx.graphics.getHeight() - Gdx.graphics.getWidth() / 4, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 2);
+
         
-        final TextField file_field = new TextField(filename, skin.getStyle(TextFieldStyle.class));
+        final TextField file_field = new TextField(filename, skin);
         window.add(file_field).fill(0f, 0f);
         window.row();
         
-        final TextButton load_button = new TextButton("Load", skin.getStyle(TextButtonStyle.class), "button-sl") {
-        	@Override
-        	public boolean touchDown(float x, float y, int pointer) {
-    			if(!grbl.isStreaming()) {
-    				filename = file_field.getText();
-    				try {
-    					file = GCodeParser.parseFile(filename);
-    					
-    					toolpath = Toolpath.fromGCode(file);
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    					System.exit(1);
-    				}
-    				catch (Exception e) {
-    					e.printStackTrace();
-    					System.exit(1);
-    				}
-    			}
-				return isChecked();
-        	}
-        };
+        final TextButton load_button = new TextButton("Load", skin);
+        load_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(!grbl.isStreaming()) {
+            				filename = file_field.getText();
+            				try {
+            					file = GCodeParser.parseFile(filename);
+            					
+            					toolpath = Toolpath.fromGCode(file);
+            				} catch (IOException e) {
+            					e.printStackTrace();
+            					System.exit(1);
+            				}
+            				catch (Exception e) {
+            					e.printStackTrace();
+            					System.exit(1);
+            				}
+            			}
+    				return true;
+            	}});
+        
         window.add(load_button).fill(0f, 0f);
         window.row();
         
-        final TextButton stream_button = new TextButton("Start streaming", skin.getStyle(TextButtonStyle.class), "button-sl") {
-        	@Override
-        	public boolean touchDown(float x, float y, int pointer) {
-    			if(grbl.isStreaming()) {
-    				grbl.stopStream();
-    				setText("Start streaming");
-    				color.r = 1;
-    				color.g = 0;
-    				color.b = 0;
-    			}
-    			else {
-    				grbl.stream(file);
-    				setText("Stop streaming");
-    				color.r = 0;
-    				color.g = 1;
-    				color.b = 0;
-    			}
-				return isChecked();
-        	}
-        };
-        stream_button.color.r = 1;
-        stream_button.color.g = 0;
-        stream_button.color.b = 0;
+        final TextButton stream_button = new TextButton("Start streaming", skin);
         
-        final TextButton hold_button = new TextButton("Enable feed hold", skin.getStyle(TextButtonStyle.class), "button-sl") {
-        	@Override
-        	public boolean touchDown(float x, float y, int pointer) {
-    			grbl.pause();
-    			if(grbl.isHold()) {
-    				setText("Disable feed hold");
-    				color.r = 1;
-    				color.g = 0;
-    				color.b = 0;
-    			}
-    			else {
-    				setText("Enable feed hold");
-    				color.r = 0;
-    				color.g = 1;
-    				color.b = 0;
-    			}
-				return isChecked();
-        	}
-        };
-        hold_button.color.r = 0;
-        hold_button.color.g = 1;
-        hold_button.color.b = 0;
+        stream_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl.isStreaming()) {
+            				grbl.stopStream();
+            				stream_button.setText("Start streaming");
+            				stream_button.setColor(1, 0, 0, 1);
+            			}
+            			else {
+            				grbl.stream(file);
+            				stream_button.setText("Stop streaming");
+            				stream_button.setColor(0, 1, 0, 1);
+            			}
+    				return true;
+            	}});
+
+		stream_button.setColor(1, 0, 0, 1);
+        
+        final TextButton hold_button = new TextButton("Enable feed hold", skin);
+        
+        hold_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			grbl.pause();
+            			if(grbl.isHold()) {
+            				hold_button.setText("Disable feed hold");
+            				hold_button.setColor(1, 0, 0, 1);
+            			}
+            			else {
+            				hold_button.setText("Enable feed hold");
+            				hold_button.setColor(0, 1, 0, 1);
+            			}
+    				return true;
+            	}});
+        
+
+		hold_button.setColor(0, 1, 0, 1);
         
         window.add(stream_button).fill(0f, 0f);
         window.row();
         window.add(hold_button).fill(0f, 0f);
         
-        cmd_field = new TextField("", skin.getStyle(TextFieldStyle.class));
-        final TextButton cmd_button = new TextButton("Execute", skin.getStyle(TextButtonStyle.class), "button-sl") {
-        	@Override
-        	public boolean touchDown(float x, float y, int pointer) {
-        		if(!grbl.isStreaming())
-        			grbl.send((cmd_field.getText() + "\n").getBytes());
-				return isChecked();
-        	}
-        };
+        cmd_field = new TextField("", skin);
+        final TextButton cmd_button = new TextButton("Execute", skin);
+        
+        cmd_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                		if(!grbl.isStreaming())
+                			grbl.send((cmd_field.getText() + "\n").getBytes());
+    				return true;
+            	}});
+        
+        
+        
+        
         window.row();
         window.add(cmd_field).fill(0f, 0f);
         window.row();
         window.add(cmd_button).fill(0f, 0f);
         
-        final TextButton exit_button = new TextButton("Quit", skin.getStyle(TextButtonStyle.class), "button-sl") {
-        	@Override
-        	public boolean touchDown(float x, float y, int pointer) {
-        		Gdx.app.exit();
-				return isChecked();
-        	}
-        };
+        final TextButton exit_button = new TextButton("Quit", skin);
+
+        exit_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                		Gdx.app.exit();
+    				return true;
+            	}});
+        
         window.row();
         window.add(exit_button).fill(0f, 0f);
         

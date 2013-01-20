@@ -3,10 +3,13 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="data"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry exported="true" kind="lib" path="/home/cody/workspace/grblgui/grblgui/libs/gdx.jar" sourcepath="/home/cody/workspace/grblgui/grblgui/libs/gdx-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="/home/cody/workspace/grblgui/grblgui/libs/gdx-natives.jar"/>
-	<classpathentry exported="true" kind="lib" path="/usr/share/java/RXTXcomm.jar"/>
-	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl-natives.jar"/>
-	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx.jar" sourcepath="/home/cody/workspace/grblgui/grblgui/libs/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-natives.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/rxtx-create-lab-commons/RXTXcomm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl-natives.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/rxtx-create-lab-commons/rxtx-native-windows.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/rxtx-create-lab-commons/rxtx-native-macosx.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/rxtx-create-lab-commons/rxtx-native-linux.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
