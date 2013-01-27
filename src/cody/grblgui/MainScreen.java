@@ -178,14 +178,6 @@ public class MainScreen implements Screen {
 	
 	@Override
 	public void show() {
-
-		/*try {
-			part = new Part("/home/cody/untitled.obj", "");
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-			System.exit(7);
-		}*/
-		
 		spriteBatch = new SpriteBatch();
 		font = new BitmapFont();
 		font.setColor(0, 1, 0, 1);
@@ -336,10 +328,8 @@ public class MainScreen implements Screen {
         
 		try {
 			file = GCodeParser.parseFile(filename);
-			//file = GCodeParser.parseFile("c:\\tmp\\deckel-3cm.tap");
 
 			grbl = new GrblStream(device);
-			//grbl = new GrblStream("COM1");
 			
 			toolpath = Toolpath.fromGCode(file);
 		} catch (IOException e) {
@@ -351,6 +341,8 @@ public class MainScreen implements Screen {
 			System.exit(1);
 		}
 
+        ui.addActor(new JogWindow(skin, grbl));
+        
 		if(toolsize > 0) {
 			Simulation sim = new Simulation(300, 300, 50, 1f);
 			sim.simulate(toolpath, new ToolInfo(toolsize));
