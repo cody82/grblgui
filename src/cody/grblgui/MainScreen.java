@@ -1,7 +1,13 @@
 package cody.grblgui;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import scala.Tuple2;
 
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeParser;
@@ -23,9 +29,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle;
 
 public class MainScreen implements Screen {
 
@@ -54,10 +57,12 @@ public class MainScreen implements Screen {
 	Vector3 lastpos = new Vector3(0,0,0);
 	
 	float speed;
+	float toolsize;
 	
-	public MainScreen(String _filename, String _device) {
+	public MainScreen(String _filename, String _device, float _toolsize) {
 		filename = _filename;
 		device = _device;
+		toolsize = _toolsize;
 	}
 	
 	@Override
@@ -79,6 +84,8 @@ public class MainScreen implements Screen {
 		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		Gdx.gl20.glEnable(GL20.GL_BLEND);
 		Gdx.gl20.glBlendFunc(GL20.GL_ONE, GL20.GL_ONE);
+		//Gdx.gl20.glDepthMask(true);
+		//Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
 		//Gdx.gl20.glDisable(GL20.GL_BLEND);
 		//Gdx.gl20.glLineWidth(2);
 		
@@ -87,7 +94,7 @@ public class MainScreen implements Screen {
 
 		Vector3 tooltargetpos = grbl.toolPosition.cpy();
 		Vector3 d = tooltargetpos.sub(current.position);
-		float l = d.len();
+
 		Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
 		current.position = result;
 		//camera.rotate(1, 0, 1, 1);
@@ -165,7 +172,6 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
 		
 	}
 	TextField cmd_field;
@@ -330,8 +336,10 @@ public class MainScreen implements Screen {
         
 		try {
 			file = GCodeParser.parseFile(filename);
+			//file = GCodeParser.parseFile("c:\\tmp\\deckel-3cm.tap");
 
 			grbl = new GrblStream(device);
+			//grbl = new GrblStream("COM1");
 			
 			toolpath = Toolpath.fromGCode(file);
 		} catch (IOException e) {
@@ -342,7 +350,39 @@ public class MainScreen implements Screen {
 			e.printStackTrace();
 			System.exit(1);
 		}
+
+		if(toolsize > 0) {
+			Simulation sim = new Simulation(300, 300, 50, 1f);
+			sim.simulate(toolpath, new ToolInfo(toolsize));
+			Tuple2<Object, Object> tmp = sim.getZminmax();
+			float min = (float)tmp._1;
+			float max = (float)tmp._2;
+	
+			System.out.println("min: " + min + " max: " + max);
+			/*System.out.println("img");
+			BufferedImage img = new BufferedImage(sim.count_x(), sim.count_y(), BufferedImage.TYPE_INT_ARGB);
+			for(int y = 0;y<sim.count_y();++y) {
+				for(int x = 0;x<sim.count_x();++x) {
+					float z = sim.getZ(x, y);
+					int color = (int)(((z - min) / (max - min)) * 255f);
+					img.setRGB(x, y, color + color << 8 + color << 16);
+				}
+			}
+	
+			System.out.println("img2");
+			
+		    File outputfile = new File("saved.png");
+		    try {
+				ImageIO.write(img, "png", outputfile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		    */
 		
+			part = new Part(sim);
+		}
+		
+	    
 		Gdx.input.setInputProcessor(ui);
 	}
 	
