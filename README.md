@@ -1,5 +1,5 @@
 ##Download
-https://github.com/cody82/grblgui-archive/raw/master/grblgui-current.zip
+http://spacewar-arena.com/cnc/files/grblgui.zip
 
 ## Screenshots
 ![screenshot](https://github.com/cody82/grblgui/raw/master/grblgui.png)
