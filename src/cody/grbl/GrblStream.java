@@ -137,7 +137,7 @@ public class GrblStream
             
             serialPort = (SerialPort) commPort;
             serialPort.setSerialPortParams(9600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
-                
+            
             in = serialPort.getInputStream();
             out = serialPort.getOutputStream();
 
@@ -165,42 +165,39 @@ public class GrblStream
         		int data;
         		int len = 0;
 
-        		while(!exit) {
-        		while(in.available() > 0 && (!exit || len != 0)) {
-                    if (   ( data = in.read()) > -1)
-                    {
-                        if ( (data == '\n' || data == '\r')) {
-                        	if(len > 0) {
-                            String output = new String(buffer,0,len);
-                        	len = 0;
-                    		System.out.println("GrblReader Received: " + output);
-                        	if(output.equals("ok")) {
-                        	}
-                        	else if(output.startsWith("MPos:")) {
-                            	String[] s = output.split("[\\]\\[xyz,\\s]");
-                            	toolPosition.x = Float.parseFloat(s[1]);
-                            	toolPosition.y = Float.parseFloat(s[2]);
-                            	toolPosition.z = Float.parseFloat(s[3]);
-                        	}
-                        	else if(output.startsWith("Grbl ")) {
-                        	}
-                        	else if(output.startsWith("'$' ")) {
-                        	}
-                        	else {
-                        		System.out.println("GrblReader Error: " + output);
-                        		System.exit(2);
-                        		return;
-                        	}
-                        	}
-                        	if(exit)
-                        		return;
-                        }
-                        else
-                        	buffer[len++] = (byte) data;
-                    }
-        		}
-        		if(exit && len == 0)
-        			return;
+				while (!exit) {
+					while (in.available() > 0 && (!exit || len != 0)) {
+						if ((data = in.read()) > -1) {
+							if ((data == '\n' || data == '\r')) {
+								if (len > 0) {
+									String output = new String(buffer, 0, len);
+									len = 0;
+									System.out.println("GrblReader Received: "
+											+ output);
+									if (output.equals("ok")) {
+									} else if (output.startsWith("MPos:")) {
+										String[] s = output
+												.split("[\\]\\[xyz,\\s]");
+										toolPosition.x = Float.parseFloat(s[1]);
+										toolPosition.y = Float.parseFloat(s[2]);
+										toolPosition.z = Float.parseFloat(s[3]);
+									} else if (output.startsWith("Grbl ")) {
+									} else if (output.startsWith("'$' ")) {
+									} else {
+										System.out.println("GrblReader Error: "
+												+ output);
+										System.exit(2);
+										return;
+									}
+								}
+								if (exit)
+									return;
+							} else
+								buffer[len++] = (byte) data;
+						}
+					}
+					if (exit && len == 0)
+						return;
 
         		try {
 					Thread.sleep(20, 0);
@@ -250,7 +247,10 @@ public class GrblStream
             		send( (line.getContent() + "\n").getBytes());
                     currentLine ++;
             		
+                    boolean ok = false;
             		int len = 0;
+            		while(!ok) {
+            			
                     while ( ( data = in.read()) > -1 )
                     {
                         if ( (data == '\n' || data == '\r')) {
@@ -259,6 +259,7 @@ public class GrblStream
                         	len = 0;
                     		System.out.println("GrblStream Received: " + output);
                         	if(output.equals("ok")) {
+                        		ok = true;
                         		break;
                         	}
                         	else if(output.startsWith("MPos:")) {
@@ -269,14 +270,31 @@ public class GrblStream
                         	}
                         	else {
                         		System.out.println("GrblStream Error: " + output);
-                        		System.exit(2);
-                        		return;
+                        		if(currentLine != 1) {
+	                        		System.exit(2);
+	                        		return;
+                        		}
+                        		else
+                            		System.out.println("GrblStream Error ignored.");
                         	}
                         	}
                         }
                         else
                         	buffer[len++] = (byte) data;
                     }
+                    try {
+						Thread.sleep(20);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+            		}
+                    if(!ok) {
+                    	System.out.println("GrblStream fail.");
+                    	System.out.println("GrblStream thread exit.");
+                		System.exit(6);
+                		return;
+                	}
             		if(exit) {
                 		System.out.println("GrblStream thread exit.");
             			return;
