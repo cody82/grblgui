@@ -14,6 +14,7 @@ import cody.gcode.GCodeParser;
 import cody.grbl.GrblStream;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -40,7 +41,8 @@ public class MainScreen implements Screen {
 	Tool tool;
 	Tool current;
 	Toolpath toolpath;
-	Part part;
+	public Part part;
+	public boolean draw_part;
 	
 	SpriteBatch spriteBatch;
 	BitmapFont font;
@@ -79,13 +81,18 @@ public class MainScreen implements Screen {
 	public void pause() {
 	}
 
+	boolean ztest = true;
+	
 	@Override
 	public void render(float arg0) {
 		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		Gdx.gl20.glEnable(GL20.GL_BLEND);
 		Gdx.gl20.glBlendFunc(GL20.GL_ONE, GL20.GL_ONE);
-		//Gdx.gl20.glDepthMask(true);
-		//Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
+		Gdx.gl20.glDepthMask(true);
+		if(ztest)
+			Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
+		else
+			Gdx.gl20.glDisable(GL20.GL_DEPTH_TEST);
 		//Gdx.gl20.glDisable(GL20.GL_BLEND);
 		//Gdx.gl20.glLineWidth(2);
 		
@@ -98,7 +105,7 @@ public class MainScreen implements Screen {
 		Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
 		current.position = result;
 		//camera.rotate(1, 0, 1, 1);
-		camera.lookAt(current.position.x, current.position.y, current.position.z);
+		//camera.lookAt(current.position.x, current.position.y, current.position.z);
 		camera.update(true);
 		
 
@@ -111,7 +118,7 @@ public class MainScreen implements Screen {
 		int currentline = toolpath.currentLine = grbl.streamer != null ? grbl.streamer.currentLine : -1;
 		
 		Matrix4 matrix = camera.combined.cpy();
-		if(part != null)
+		if(part != null && draw_part)
 			part.draw(matrix);
 		workspace.draw(matrix);
 		toolpath.draw(matrix);
@@ -147,17 +154,91 @@ public class MainScreen implements Screen {
 				cmd_field.setText(cmd);
 			}
 		}
-		
+
 		
 		if(Gdx.input.isButtonPressed(2)) {
+			if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT))
+				cam_translate();
+			else
+				cam_rotate();
+			/*Matrix4 m2 = camera.view.cpy();
+			m2.inv();
+			Matrix4 m = new Matrix4();
+			m.idt();
+			m.translate(Gdx.input.getDeltaX(), Gdx.input.getDeltaY(), Gdx.input.getDeltaX());
+			m2.mul(m);
+			m2.inv();
+			m2.getTranslation(camera.position);
+
+			//camera.update();
+			//m2.getTranslation(camera.position);
+			//tmp.mul();
+			//camera.position.add(tmp);
+			
+			/*tmp = camera.view
+			tmp.mul(Gdx.input.getDeltaX());
+			camera.position.add(tmp);
 			camera.position.x += Gdx.input.getDeltaX();
-			camera.position.y += Gdx.input.getDeltaY();
+			camera.position.y += ;*/
 		}
 		
         ui.act(Math.min(arg0, 1 / 30f));
         ui.draw();
 	}
 
+	/*void cam_rotate() {
+		Vector3 right = camera.direction.cpy();
+		right.crs(camera.up);
+		
+		Vector3 up = right.cpy();
+		up.crs(camera.direction);
+		
+		camera.rotate(Gdx.input.getDeltaY(), right.x,right.y,right.z);
+		camera.rotate(Gdx.input.getDeltaX(), up.x,up.y,up.z);
+	}*/
+
+	void cam_rotate() {
+		Vector3 right = camera.direction.cpy();
+		right.crs(camera.up);
+		
+		Vector3 up = right.cpy();
+		up.crs(camera.direction);
+		
+		Vector3 point = camera.direction.cpy();
+		point.mul(camera.position.len());
+		point.add(camera.position);
+		
+		
+		camera.translate(up.mul((float)Gdx.input.getDeltaY() * camera.position.len() * 0.01f));
+		camera.translate(right.mul(-(float)Gdx.input.getDeltaX() * camera.position.len() * 0.01f));
+		//camera.rotateAround(point, up, Gdx.input.getDeltaX());
+		//camera.rotateAround(point, right, Gdx.input.getDeltaY());
+		//camera.rotate(Gdx.input.getDeltaY(), right.x,right.y,right.z);
+		//camera.rotate(Gdx.input.getDeltaX(), up.x,up.y,up.z);
+		camera.lookAt(point.x, point.y, point.z);
+
+	}
+	
+	void cam_translate() {
+		Vector3 right = camera.direction.cpy();
+		right.crs(camera.up);
+		Vector3 tmp = right.cpy();
+		tmp.mul(-Gdx.input.getDeltaX());
+		camera.translate(tmp);
+		
+		Vector3 up = right.cpy();
+		up.crs(camera.direction);
+		tmp = up.cpy();
+		tmp.mul(Gdx.input.getDeltaY());
+		camera.translate(tmp);
+	}
+
+	void cam_move(float f) {
+		Vector3 tmp = camera.direction.cpy();
+		tmp.mul(f);
+		camera.translate(tmp);
+	}
+	
 	@Override
 	public void resize(int width, int height) {
 		Gdx.graphics.getGL20().glViewport(0, 0, width, height);
@@ -206,8 +287,8 @@ public class MainScreen implements Screen {
         ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false){
         	@Override
         	public boolean scrolled(int amount) {
-        		camera.position.z += amount * 10;
-				return super.scrolled(amount);
+        		cam_move((float)amount * camera.position.len() * -0.1f);
+				return true;
         	}
         };
         window = new Window("Controls", skin);
@@ -342,6 +423,7 @@ public class MainScreen implements Screen {
 		}
 
         ui.addActor(new JogWindow(skin, grbl));
+        ui.addActor(new ViewWindow(skin, this));
         
 		if(toolsize > 0) {
 			Simulation sim = new Simulation(300, 300, 50, 1f);
@@ -372,6 +454,7 @@ public class MainScreen implements Screen {
 		    */
 		
 			part = new Part(sim);
+			draw_part = true;
 		}
 		
 	    

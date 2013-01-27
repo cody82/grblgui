@@ -83,7 +83,7 @@ public class JogWindow extends Window {
 		grbl = _grbl;
 		
 		setBounds(0, 0, 200, 400);
-		setColor(1, 0, 0, 1);
+		setColor(1, 0, 0, 0.8f);
 
 		Table table3 = new Table();
 		add(table3).expand().fill();
