@@ -47,13 +47,12 @@ public class MainScreen implements Screen {
 	SpriteBatch spriteBatch;
 	BitmapFont font;
 	GCodeFile file;
-	String filename;
+	public String filename;
 	String device;
 
 
     Skin skin;
     Stage ui;
-	Window window;
 	
 	float postimer;
 	Vector3 lastpos = new Vector3(0,0,0);
@@ -115,34 +114,40 @@ public class MainScreen implements Screen {
 			postimer = 0;
 		}
 
-		int currentline = toolpath.currentLine = grbl.streamer != null ? grbl.streamer.currentLine : -1;
-		
 		Matrix4 matrix = camera.combined.cpy();
+
 		if(part != null && draw_part)
 			part.draw(matrix);
+
 		workspace.draw(matrix);
-		toolpath.draw(matrix);
+		if(toolpath != null)
+			toolpath.draw(matrix);
 		tool.draw(matrix);
 		current.draw(matrix);
-		
-		
+
 		orthocam.update();
-		spriteBatch.setProjectionMatrix(orthocam.projection);
-		spriteBatch.setTransformMatrix(orthocam.view);
-		spriteBatch.begin();
-		int maxlines = Gdx.graphics.getHeight() / 20 - 1;
-		for(int i = currentline;i > 0 && i > currentline - maxlines;--i) {
-			if(i<file.gcode.size())
-				font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
+		
+		if(file != null) {
+			spriteBatch.setProjectionMatrix(orthocam.projection);
+			spriteBatch.setTransformMatrix(orthocam.view);
+			spriteBatch.begin();
+			int currentline = toolpath.currentLine = grbl.streamer != null ? grbl.streamer.currentLine : -1;
+			
+			int maxlines = Gdx.graphics.getHeight() / 20 - 1;
+			for(int i = currentline;i > 0 && i > currentline - maxlines;--i) {
+				if(i<file.gcode.size())
+					font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
+			}
+		
+			font.draw(spriteBatch, "position: X" + grbl.toolPosition.x + "Y" + grbl.toolPosition.y + "Z" +grbl.toolPosition.z, Gdx.graphics.getWidth() - 220, 100);
+			font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
+			font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
+			if(grbl.isStreaming()) {
+				font.draw(spriteBatch, "eta:" + Float.toString(toolpath.getEta())+"min", Gdx.graphics.getWidth() - 220, 60);
+				font.draw(spriteBatch, "duration: " + Float.toString(toolpath.duration)+"min", Gdx.graphics.getWidth() - 220, 20);
+			}
+			spriteBatch.end();
 		}
-		font.draw(spriteBatch, "position: X" + grbl.toolPosition.x + "Y" + grbl.toolPosition.y + "Z" +grbl.toolPosition.z, Gdx.graphics.getWidth() - 220, 100);
-		font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
-		font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
-		if(grbl.isStreaming()) {
-			font.draw(spriteBatch, "eta:" + Float.toString(toolpath.getEta())+"min", Gdx.graphics.getWidth() - 220, 60);
-			font.draw(spriteBatch, "duration: " + Float.toString(toolpath.duration)+"min", Gdx.graphics.getWidth() - 220, 20);
-		}
-		spriteBatch.end();
 		
 		if (Gdx.input.isButtonPressed(1)) {
 			int x = Gdx.input.getX();
@@ -291,131 +296,9 @@ public class MainScreen implements Screen {
 				return true;
         	}
         };
-        window = new Window("Controls", skin);
-        window.setColor(0,0,0,0.5f);
-        window.setBounds(Gdx.graphics.getWidth() - Gdx.graphics.getHeight() / 2, Gdx.graphics.getHeight() - Gdx.graphics.getWidth() / 4, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 2);
-
-        
-        final TextField file_field = new TextField(filename, skin);
-        window.add(file_field).fill(0f, 0f);
-        window.row();
-        
-        final TextButton load_button = new TextButton("Load", skin);
-        load_button.addListener(
-            	new InputListener() {
-            		@Override
-            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			if(!grbl.isStreaming()) {
-            				filename = file_field.getText();
-            				try {
-            					file = GCodeParser.parseFile(filename);
-            					
-            					toolpath = Toolpath.fromGCode(file);
-            				} catch (IOException e) {
-            					e.printStackTrace();
-            					System.exit(1);
-            				}
-            				catch (Exception e) {
-            					e.printStackTrace();
-            					System.exit(1);
-            				}
-            			}
-    				return true;
-            	}});
-        
-        window.add(load_button).fill(0f, 0f);
-        window.row();
-        
-        final TextButton stream_button = new TextButton("Start streaming", skin);
-        
-        stream_button.addListener(
-            	new InputListener() {
-            		@Override
-            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			if(grbl.isStreaming()) {
-            				grbl.stopStream();
-            				stream_button.setText("Start streaming");
-            				stream_button.setColor(1, 0, 0, 1);
-            			}
-            			else {
-            				grbl.stream(file);
-            				stream_button.setText("Stop streaming");
-            				stream_button.setColor(0, 1, 0, 1);
-            			}
-    				return true;
-            	}});
-
-		stream_button.setColor(1, 0, 0, 1);
-        
-        final TextButton hold_button = new TextButton("Enable feed hold", skin);
-        
-        hold_button.addListener(
-            	new InputListener() {
-            		@Override
-            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			grbl.pause();
-            			if(grbl.isHold()) {
-            				hold_button.setText("Disable feed hold");
-            				hold_button.setColor(1, 0, 0, 1);
-            			}
-            			else {
-            				hold_button.setText("Enable feed hold");
-            				hold_button.setColor(0, 1, 0, 1);
-            			}
-    				return true;
-            	}});
-        
-
-		hold_button.setColor(0, 1, 0, 1);
-        
-        window.add(stream_button).fill(0f, 0f);
-        window.row();
-        window.add(hold_button).fill(0f, 0f);
-        
-        cmd_field = new TextField("", skin);
-        final TextButton cmd_button = new TextButton("Execute", skin);
-        
-        cmd_button.addListener(
-            	new InputListener() {
-            		@Override
-            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                		if(!grbl.isStreaming())
-                			grbl.send((cmd_field.getText() + "\n").getBytes());
-    				return true;
-            	}});
-        
-        
-        
-        
-        window.row();
-        window.add(cmd_field).fill(0f, 0f);
-        window.row();
-        window.add(cmd_button).fill(0f, 0f);
-        
-        final TextButton exit_button = new TextButton("Quit", skin);
-
-        exit_button.addListener(
-            	new InputListener() {
-            		@Override
-            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                		Gdx.app.exit();
-    				return true;
-            	}});
-        
-        window.row();
-        window.add(exit_button).fill(0f, 0f);
-        
-        ui.addActor(window);
         
 		try {
-			file = GCodeParser.parseFile(filename);
-
 			grbl = new GrblStream(device);
-			
-			toolpath = Toolpath.fromGCode(file);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -424,39 +307,8 @@ public class MainScreen implements Screen {
 
         ui.addActor(new JogWindow(skin, grbl));
         ui.addActor(new ViewWindow(skin, this));
-        
-		if(toolsize > 0) {
-			Simulation sim = new Simulation(300, 300, 50, 1f);
-			sim.simulate(toolpath, new ToolInfo(toolsize));
-			Tuple2<Object, Object> tmp = sim.getZminmax();
-			float min = (float)tmp._1;
-			float max = (float)tmp._2;
-	
-			System.out.println("min: " + min + " max: " + max);
-			/*System.out.println("img");
-			BufferedImage img = new BufferedImage(sim.count_x(), sim.count_y(), BufferedImage.TYPE_INT_ARGB);
-			for(int y = 0;y<sim.count_y();++y) {
-				for(int x = 0;x<sim.count_x();++x) {
-					float z = sim.getZ(x, y);
-					int color = (int)(((z - min) / (max - min)) * 255f);
-					img.setRGB(x, y, color + color << 8 + color << 16);
-				}
-			}
-	
-			System.out.println("img2");
-			
-		    File outputfile = new File("saved.png");
-		    try {
-				ImageIO.write(img, "png", outputfile);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		    */
-		
-			part = new Part(sim);
-			draw_part = true;
-		}
-		
+        ui.addActor(new SettingsWindow(skin));
+        ui.addActor(new ControlWindow(skin, grbl, this));
 	    
 		Gdx.input.setInputProcessor(ui);
 	}

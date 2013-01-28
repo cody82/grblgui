@@ -29,7 +29,7 @@ class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Flo
 	}
 	
 	def mill(x : Int, y : Int, z : Float) {
-	  //if(x >= 0 && y >= 0 && x < count_x && y < count_y)
+	  if(x >= 0 && y >= 0 && x < count_x && y < count_y)
 		  map(x)(y) = math.min(map(x)(y), z)
 	}
 	

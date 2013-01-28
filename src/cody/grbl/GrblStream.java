@@ -109,7 +109,12 @@ public class GrblStream
     	}
     	
     }
+
+    public void stream() {
+    	stream(gcode);
+    }
     public void stream(GCodeFile file) {
+    	gcode = file;
     	Reader r = reader;
     	stopReader();
     	
