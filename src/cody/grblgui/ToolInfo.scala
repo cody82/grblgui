@@ -1,6 +1,6 @@
 package cody.grblgui
 
-class ToolInfo(radius : Float) {
-	def getRadius() = radius
+class ToolInfo(size : Float) {
+	def getRadius() = size * 0.5f
 }
 

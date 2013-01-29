@@ -58,7 +58,7 @@ class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Flo
 	      var d = next.cpy()
 	      d.sub(cur)
 	      //println("line " + cur.toString() + " -> " + next.toString())
-	      val segments = (d.len() / precision).toInt
+	      val segments = math.max(1,(d.len() / precision).toInt)
 	      for(j <- 0 to segments - 1) {
 	        var p = d.cpy()
 	        p.mul(j)

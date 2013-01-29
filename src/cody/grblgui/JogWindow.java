@@ -27,6 +27,7 @@ public class JogWindow extends Window {
 	TextField step;
 	CheckBox current;
 	TextButton set;
+	TextButton zero;
 	
 	@Override
 	public void draw(SpriteBatch arg0, float arg1) {
@@ -92,7 +93,7 @@ public class JogWindow extends Window {
 		current = new CheckBox("Current", skin);
 		current.setChecked(true);
 		table3.add(current).fill().expand();
-		set = new TextButton("Set", skin);
+		set = new TextButton("Move", skin);
 		table3.add(set).fill().expand();
 		set.addListener(
             	new InputListener() {
@@ -101,6 +102,19 @@ public class JogWindow extends Window {
                 		go();
     				return true;
             	}});
+		zero = new TextButton("Set Zero", skin);
+		zero.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                		if(!grbl.isStreaming()) {
+                			//Vector3 v = grbl.machinePosition.cpy().sub(grbl.toolPosition.cpy());
+                			Vector3 v = grbl.machinePosition.cpy();
+                			grbl.send(("G10 L2 P1 X" + v.x + " Y" + v.y +" Z" + v.z + "\n").getBytes());
+                		}
+    				return true;
+            	}});
+		table3.add(zero).fill().expand();
 		
 		Table table1 = new Table();
 		add(table1).expand().fill();

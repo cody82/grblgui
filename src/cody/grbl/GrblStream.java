@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import cody.gcode.GCodeCommand;
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeLine;
 
@@ -34,6 +35,7 @@ public class GrblStream
     public OutputStream out;
     public InputStream in;
     public Vector3 toolPosition = new Vector3();
+    public Vector3 machinePosition = new Vector3();
     public Streamer streamer;
     Updater updater;
     Reader reader;
@@ -180,17 +182,25 @@ public class GrblStream
 									System.out.println("GrblReader Received: "
 											+ output);
 									if (output.equals("ok")) {
-									} else if (output.startsWith("MPos:")) {
-										String[] s = output
-												.split("[\\]\\[xyz,\\s]");
-										toolPosition.x = Float.parseFloat(s[1]);
-										toolPosition.y = Float.parseFloat(s[2]);
-										toolPosition.z = Float.parseFloat(s[3]);
+									} else if (output.contains("MPos:[")) {
+										String mpos = output.substring(output.indexOf("MPos:[") + 6);
+										String[] s = mpos.split("[\\]\\[xyz,\\s]");
+										machinePosition.x = Float.parseFloat(s[0]);
+										machinePosition.y = Float.parseFloat(s[1]);
+										machinePosition.z = Float.parseFloat(s[2]);
+										String wpos = output.substring(output.indexOf("WPos:[") + 6);
+										String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
+										toolPosition.x = Float.parseFloat(s2[0]);
+										toolPosition.y = Float.parseFloat(s2[1]);
+										toolPosition.z = Float.parseFloat(s2[2]);
+									} else if (output.startsWith("<")) {
+										System.out.println("Wrong grbl-version?(TODO)");
+										System.exit(2);
+										return;
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
 									} else {
-										System.out.println("GrblReader Error: "
-												+ output);
+										System.out.println("GrblReader Error: "+ output);
 										System.exit(2);
 										return;
 									}
@@ -247,7 +257,16 @@ public class GrblStream
                 System.out.println("GrblStream: Start streaming...");
                 
                 currentLine = 0;
-            	for(GCodeLine line : gcode.gcode) {
+                int errors = 0;
+            	lines:for(GCodeLine line : gcode.gcode) {
+            		for(GCodeCommand cmd : line.commands) {
+            			if(cmd.cmd == 'T' || cmd.cmd == 'M') {
+                    		System.out.println("GrblStream ignored line: " + line.getContent());
+            				currentLine++;
+            				continue lines;
+            			}
+            		}
+            		
             		System.out.println("GrblStream Write: " + line.getContent());
             		send( (line.getContent() + "\n").getBytes());
                     currentLine ++;
@@ -266,16 +285,25 @@ public class GrblStream
                         	if(output.equals("ok")) {
                         		ok = true;
                         		break;
-                        	}
-                        	else if(output.startsWith("MPos:")) {
-                            	String[] s = output.split("[\\]\\[xyz,\\s]");
-                            	toolPosition.x = Float.parseFloat(s[1]);
-                            	toolPosition.y = Float.parseFloat(s[2]);
-                            	toolPosition.z = Float.parseFloat(s[3]);
-                        	}
-                        	else {
+                        	} else if (output.contains("MPos:[")) {
+								String mpos = output.substring(output.indexOf("MPos:[") + 6);
+								String[] s = mpos.split("[\\]\\[xyz,\\s]");
+								machinePosition.x = Float.parseFloat(s[0]);
+								machinePosition.y = Float.parseFloat(s[1]);
+								machinePosition.z = Float.parseFloat(s[2]);
+								String wpos = output.substring(output.indexOf("WPos:[") + 6);
+								String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
+								toolPosition.x = Float.parseFloat(s2[0]);
+								toolPosition.y = Float.parseFloat(s2[1]);
+								toolPosition.z = Float.parseFloat(s2[2]);
+							} else if (output.startsWith("<")) {
+								System.out.println("Wrong grbl-version?(TODO)");
+								System.exit(2);
+								return;
+							} else {
                         		System.out.println("GrblStream Error: " + output);
-                        		if(currentLine != 1) {
+                        		errors++;
+                        		if(errors != 1) {
 	                        		System.exit(2);
 	                        		return;
                         		}

@@ -27,14 +27,10 @@ public class ControlWindow extends Window{
 	MainScreen mainscreen;
 	TextField tool_radius;
 	
-	String[] getFiles() {
-		return new String[] {"fgdfng", "fgjnfgj"};
-	}
-	
 	public ControlWindow(Skin skin, GrblStream _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
 		grbl = _grbl;
-		setBounds(600, 0, 250, 250);
+		setBounds(600, 0, 250, 300);
 		setColor(0.5f, 0.5f, 0.5f, 0.8f);
 		String dir_or_file = _mainscreen.filename;
 		mainscreen = _mainscreen;
@@ -95,13 +91,15 @@ public class ControlWindow extends Window{
         boolean isDirectory = fh.isDirectory();
         if(isDirectory) {
         	files = fh.list();
-        	for(FileHandle f: files) {
-        	}
         } else {
         	files = new FileHandle[] { fh };
         }
+        String[] filenames = new String[files.length];
+    	for(int i=0;i<files.length;++i) {
+    		filenames[i]=files[i].name();
+    	}
         final FileHandle[] filesfinal = files;
-        final SelectBox file_select = new SelectBox(files, skin);
+        final SelectBox file_select = new SelectBox(filenames, skin);
         final TextButton load_button = new TextButton("Load", skin);
 
         load_button.addListener(
@@ -135,7 +133,7 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            				Simulation sim = new Simulation(300, 300, 50, 1f);
+            				Simulation sim = new Simulation(300, 400, 50, 1f);
             				mainscreen.toolsize = Float.parseFloat(tool_radius.getText());
             				sim.simulate(mainscreen.toolpath, new ToolInfo(mainscreen.toolsize));
             				Tuple2<Object, Object> tmp = sim.getZminmax();
@@ -151,12 +149,22 @@ public class ControlWindow extends Window{
     				return true;
             	}});
 
+
+        final TextButton reset_button = new TextButton("Reset grbl", skin);
+        reset_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            				grbl.send(new byte[]{0x18});
+    				return true;
+            	}});
+        
         add(file_select).fill().expand();
         row();
         add(load_button).fill().expand();
         row();
         Table t = new Table();
-        t.add(new Label("Tool radius[mm]", skin)).fill().expand();
+        t.add(new Label("Tool size[mm]", skin)).fill().expand();
         t.add(tool_radius).width(50);
         add(t).fill().expand();
         row();
@@ -165,6 +173,8 @@ public class ControlWindow extends Window{
         add(stream_button).fill().expand();
         row();
         add(hold_button).fill().expand();
+        row();
+        add(reset_button).fill().expand();
         row();
         add(exit_button).fill().expand();
         

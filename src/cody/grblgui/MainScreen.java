@@ -60,10 +60,9 @@ public class MainScreen implements Screen {
 	float speed;
 	float toolsize;
 	
-	public MainScreen(String _filename, String _device, float _toolsize) {
+	public MainScreen(String _filename, String _device) {
 		filename = _filename;
 		device = _device;
-		toolsize = _toolsize;
 	}
 	
 	@Override
@@ -268,7 +267,7 @@ public class MainScreen implements Screen {
 
         ui.addActor(new JogWindow(skin, grbl));
         ui.addActor(new ViewWindow(skin, this));
-        ui.addActor(new SettingsWindow(skin));
+        //ui.addActor(new SettingsWindow(skin));
         ui.addActor(new ControlWindow(skin, grbl, this));
 	    
 		Gdx.input.setInputProcessor(ui);
