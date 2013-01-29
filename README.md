@@ -11,6 +11,6 @@ http://spacewar-arena.com/cnc/files/grblgui.zip
 * OpenGL 2.0
 
 ## Usage
-### Commandline arguments
-Start the Program: java -jar grblgui.jar <your g-code file> <arduino port>
-Example: java -jar grblgui.jar box.g /dev/ttyACM0
+Start the Program: `java -jar grblgui.jar <your g-code file or directory> <arduino COM-port>`
+
+Example: `java -jar grblgui.jar /home/cody/gcode/ /dev/ttyACM0`
