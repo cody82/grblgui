@@ -154,10 +154,6 @@ public class MainScreen implements Screen {
 			int y = Gdx.input.getY();
 			Vector3 pos = workspace.intersect(camera.getPickRay(x, y));
 			tool.position = pos;
-			if (!grbl.isStreaming()) {
-				String cmd = "G0X" + pos.x + "Y" + pos.y + "Z" + pos.z;
-				cmd_field.setText(cmd);
-			}
 		}
 
 		
@@ -166,41 +162,11 @@ public class MainScreen implements Screen {
 				cam_translate();
 			else
 				cam_rotate();
-			/*Matrix4 m2 = camera.view.cpy();
-			m2.inv();
-			Matrix4 m = new Matrix4();
-			m.idt();
-			m.translate(Gdx.input.getDeltaX(), Gdx.input.getDeltaY(), Gdx.input.getDeltaX());
-			m2.mul(m);
-			m2.inv();
-			m2.getTranslation(camera.position);
-
-			//camera.update();
-			//m2.getTranslation(camera.position);
-			//tmp.mul();
-			//camera.position.add(tmp);
-			
-			/*tmp = camera.view
-			tmp.mul(Gdx.input.getDeltaX());
-			camera.position.add(tmp);
-			camera.position.x += Gdx.input.getDeltaX();
-			camera.position.y += ;*/
 		}
 		
         ui.act(Math.min(arg0, 1 / 30f));
         ui.draw();
 	}
-
-	/*void cam_rotate() {
-		Vector3 right = camera.direction.cpy();
-		right.crs(camera.up);
-		
-		Vector3 up = right.cpy();
-		up.crs(camera.direction);
-		
-		camera.rotate(Gdx.input.getDeltaY(), right.x,right.y,right.z);
-		camera.rotate(Gdx.input.getDeltaX(), up.x,up.y,up.z);
-	}*/
 
 	void cam_rotate() {
 		Vector3 right = camera.direction.cpy();
@@ -216,10 +182,6 @@ public class MainScreen implements Screen {
 		
 		camera.translate(up.mul((float)Gdx.input.getDeltaY() * camera.position.len() * 0.01f));
 		camera.translate(right.mul(-(float)Gdx.input.getDeltaX() * camera.position.len() * 0.01f));
-		//camera.rotateAround(point, up, Gdx.input.getDeltaX());
-		//camera.rotateAround(point, right, Gdx.input.getDeltaY());
-		//camera.rotate(Gdx.input.getDeltaY(), right.x,right.y,right.z);
-		//camera.rotate(Gdx.input.getDeltaX(), up.x,up.y,up.z);
 		camera.lookAt(point.x, point.y, point.z);
 
 	}
@@ -260,7 +222,6 @@ public class MainScreen implements Screen {
 	public void resume() {
 		
 	}
-	TextField cmd_field;
 	
 	@Override
 	public void show() {

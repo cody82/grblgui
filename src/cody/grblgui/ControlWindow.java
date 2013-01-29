@@ -12,9 +12,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public class ControlWindow extends Window{
@@ -22,6 +25,7 @@ public class ControlWindow extends Window{
 	GrblStream grbl;
 	GCodeFile file;
 	MainScreen mainscreen;
+	TextField tool_radius;
 	
 	String[] getFiles() {
 		return new String[] {"fgdfng", "fgjnfgj"};
@@ -30,7 +34,7 @@ public class ControlWindow extends Window{
 	public ControlWindow(Skin skin, GrblStream _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
 		grbl = _grbl;
-		setBounds(600, 0, 150, 250);
+		setBounds(600, 0, 250, 250);
 		setColor(0.5f, 0.5f, 0.5f, 0.8f);
 		String dir_or_file = _mainscreen.filename;
 		mainscreen = _mainscreen;
@@ -126,50 +130,35 @@ public class ControlWindow extends Window{
 
         final TextButton preview_button = new TextButton("Generate preview", skin);
 
+        tool_radius = new TextField("5",skin);
         preview_button.addListener(
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			if(mainscreen.toolsize > 0) {
             				Simulation sim = new Simulation(300, 300, 50, 1f);
+            				mainscreen.toolsize = Float.parseFloat(tool_radius.getText());
             				sim.simulate(mainscreen.toolpath, new ToolInfo(mainscreen.toolsize));
             				Tuple2<Object, Object> tmp = sim.getZminmax();
             				float min = (float)tmp._1;
             				float max = (float)tmp._2;
             		
             				System.out.println("min: " + min + " max: " + max);
-            				/*System.out.println("img");
-            				BufferedImage img = new BufferedImage(sim.count_x(), sim.count_y(), BufferedImage.TYPE_INT_ARGB);
-            				for(int y = 0;y<sim.count_y();++y) {
-            					for(int x = 0;x<sim.count_x();++x) {
-            						float z = sim.getZ(x, y);
-            						int color = (int)(((z - min) / (max - min)) * 255f);
-            						img.setRGB(x, y, color + color << 8 + color << 16);
-            					}
-            				}
-            		
-            				System.out.println("img2");
-            				
-            			    File outputfile = new File("saved.png");
-            			    try {
-            					ImageIO.write(img, "png", outputfile);
-            				} catch (IOException e) {
-            					e.printStackTrace();
-            				}
-            			    */
-            			
+
             				mainscreen.part = new Part(sim);
             				mainscreen.draw_part = true;
-            			}
             			
             			
     				return true;
             	}});
-        
 
         add(file_select).fill().expand();
         row();
         add(load_button).fill().expand();
+        row();
+        Table t = new Table();
+        t.add(new Label("Tool radius[mm]", skin)).fill().expand();
+        t.add(tool_radius).width(50);
+        add(t).fill().expand();
         row();
         add(preview_button).fill().expand();
         row();
