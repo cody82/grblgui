@@ -8,6 +8,6 @@
 	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-natives.jar"/>
 	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl-natives.jar"/>
 	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl.jar"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/SerialComm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/jssc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

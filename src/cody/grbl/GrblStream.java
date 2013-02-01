@@ -1,6 +1,7 @@
 package cody.grbl;
 
-import j.extensions.comm.SerialComm;
+import jssc.SerialPort;
+import jssc.SerialPortException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,9 +30,9 @@ public class GrblStream
     
     GCodeFile gcode;
     
-    SerialComm serialPort;
-    public OutputStream out;
-    public InputStream in;
+    SerialPort serialPort;
+    //public OutputStream out;
+    //public InputStream in;
     public Vector3 toolPosition = new Vector3();
     public Vector3 machinePosition = new Vector3();
     public Streamer streamer;
@@ -41,14 +42,15 @@ public class GrblStream
     Thread streamer_thread;
     Thread reader_thread;
     
-    synchronized static void write(OutputStream out, byte[] data) throws IOException {
-    	out.write(data);
+    synchronized void write(byte[] data) throws SerialPortException {
+    	serialPort.writeBytes(data);
+    	//out.write(data);
     }
     
     synchronized public void send(byte[] data) {
     	try {
-			write(out, data);
-		} catch (IOException e) {
+			write(data);
+		} catch (SerialPortException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(13);
@@ -64,9 +66,9 @@ public class GrblStream
     }
     public void pause() {
     	try {
-			write(out, new byte[]{(byte) (is_paused ? '~' : '!')});
+			write(new byte[]{(byte) (is_paused ? '~' : '!')});
 			is_paused = !is_paused;
-		} catch (IOException e) {
+		} catch (SerialPortException e) {
 			e.printStackTrace();
 			System.exit(4);
 		}
@@ -89,7 +91,7 @@ public class GrblStream
     }
     
     void createReader() {
-        reader = new Reader(in);
+        reader = new Reader(serialPort);
         reader_thread = new Thread(reader);
         reader_thread.start();
     }
@@ -118,7 +120,7 @@ public class GrblStream
     	Reader r = reader;
     	stopReader();
     	
-        streamer = new Streamer(in, out, file);
+        streamer = new Streamer(serialPort, file);
         streamer.buffer = r.buffer;
         streamer_thread = new Thread(streamer);
         streamer_thread.start();
@@ -131,33 +133,24 @@ public class GrblStream
     }
     void connect ( String portName ) throws Exception
     {
-    	SerialComm[] ports = SerialComm.getCommPorts();
-    	for(SerialComm c : ports) {
-    		String name = c.getSystemPortName();
-    		System.err.println(name);
-    		if(name.equals(portName)) {
-    			serialPort = c;
-    			serialPort.setComPortParameters(9600, 8, SerialComm.ONE_STOP_BIT, SerialComm.NO_PARITY);
-    			if(!serialPort.openPort())
-    				throw new Exception("cant open port " + portName);
-                in = serialPort.getInputStream();
-                out = serialPort.getOutputStream();
-                updater_thread = new Thread(updater = new Updater(out));
-                updater_thread.start();
-    			return;
-    		}
-    	}
-    	throw new Exception("port does not exist: " + portName);
+    	serialPort = new SerialPort(portName);
+    	if(!serialPort.openPort())
+    		throw new Exception("cant open port");	
+    	if(!serialPort.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE))
+    		throw new Exception("cant set port params");
+
+        updater_thread = new Thread(updater = new Updater(serialPort));
+        updater_thread.start();
     }
 
     
     public class Reader implements Runnable 
     {
-        private InputStream in;
+        private SerialPort in;
         private byte[] buffer = new byte[1024];
         public boolean exit = false;
         
-        public Reader ( InputStream in )
+        public Reader ( SerialPort in )
         {
             this.in = in;
         }
@@ -166,18 +159,22 @@ public class GrblStream
         {
             try
             {
-        		int data;
+        		byte data;
         		int len = 0;
 
 				while (!exit) {
-					while (in.available() > 0 && (!exit || len != 0)) {
-						if ((data = in.read()) > -1) {
+					//System.out.println("1");
+					while (in.getInputBufferBytesCount() > 0 && (!exit || len != 0)) {
+						//System.out.println("2");
+						if ((data = in.readBytes(1)[0]) > -1) {
+							//System.out.println("3");
+							//System.out.println(data);
 							if ((data == '\n' || data == '\r')) {
+								//System.out.println("4");
 								if (len > 0) {
 									String output = new String(buffer, 0, len);
 									len = 0;
-									System.out.println("GrblReader Received: "
-											+ output);
+									System.out.println("GrblReader Received: "+ output);
 									if (output.equals("ok")) {
 									} else if (output.contains("MPos:[")) {
 										String mpos = output.substring(output.indexOf("MPos:[") + 6);
@@ -221,7 +218,7 @@ public class GrblStream
 				}
         		}
             }
-            catch ( IOException e )
+            catch ( NumberFormatException | SerialPortException e )
             {
                 e.printStackTrace();
                 System.exit(-1);
@@ -231,17 +228,15 @@ public class GrblStream
     
     public class Streamer implements Runnable 
     {
-        private InputStream in;
-        OutputStream out;
         private byte[] buffer = new byte[1024];
         GCodeFile gcode;
         public int currentLine;
         public boolean exit = false;
+        SerialPort port;
         
-        public Streamer ( InputStream in ,OutputStream out, GCodeFile gcode)
+        public Streamer ( SerialPort port, GCodeFile gcode)
         {
-            this.in = in;
-            this.out = out;
+            this.port = port;
             this.gcode = gcode;
         }
         
@@ -249,7 +244,7 @@ public class GrblStream
         {
             try
             {
-        		int data;
+        		byte data;
                 
                 System.out.println("GrblStream: Start streaming...");
                 
@@ -272,41 +267,41 @@ public class GrblStream
             		int len = 0;
             		while(!ok) {
             			
-                    while ( ( data = in.read()) > -1 )
-                    {
+                    while ( port.getInputBufferBytesCount() > 0 ) {
+                    	data = port.readBytes(1)[0];
                         if ( (data == '\n' || data == '\r')) {
                         	if(len > 0) {
-                            String output = new String(buffer,0,len);
-                        	len = 0;
-                    		System.out.println("GrblStream Received: " + output);
-                        	if(output.equals("ok")) {
-                        		ok = true;
-                        		break;
-                        	} else if (output.contains("MPos:[")) {
-								String mpos = output.substring(output.indexOf("MPos:[") + 6);
-								String[] s = mpos.split("[\\]\\[xyz,\\s]");
-								machinePosition.x = Float.parseFloat(s[0]);
-								machinePosition.y = Float.parseFloat(s[1]);
-								machinePosition.z = Float.parseFloat(s[2]);
-								String wpos = output.substring(output.indexOf("WPos:[") + 6);
-								String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
-								toolPosition.x = Float.parseFloat(s2[0]);
-								toolPosition.y = Float.parseFloat(s2[1]);
-								toolPosition.z = Float.parseFloat(s2[2]);
-							} else if (output.startsWith("<")) {
-								System.out.println("Wrong grbl-version?(TODO)");
-								System.exit(2);
-								return;
-							} else {
-                        		System.out.println("GrblStream Error: " + output);
-                        		errors++;
-                        		if(errors != 1) {
-	                        		System.exit(2);
-	                        		return;
-                        		}
-                        		else
-                            		System.out.println("GrblStream Error ignored.");
-                        	}
+	                            String output = new String(buffer,0,len);
+	                        	len = 0;
+	                    		System.out.println("GrblStream Received: " + output);
+	                        	if(output.equals("ok")) {
+	                        		ok = true;
+	                        		break;
+	                        	} else if (output.contains("MPos:[")) {
+									String mpos = output.substring(output.indexOf("MPos:[") + 6);
+									String[] s = mpos.split("[\\]\\[xyz,\\s]");
+									machinePosition.x = Float.parseFloat(s[0]);
+									machinePosition.y = Float.parseFloat(s[1]);
+									machinePosition.z = Float.parseFloat(s[2]);
+									String wpos = output.substring(output.indexOf("WPos:[") + 6);
+									String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
+									toolPosition.x = Float.parseFloat(s2[0]);
+									toolPosition.y = Float.parseFloat(s2[1]);
+									toolPosition.z = Float.parseFloat(s2[2]);
+								} else if (output.startsWith("<")) {
+									System.out.println("Wrong grbl-version?(TODO)");
+									System.exit(2);
+									return;
+								} else {
+	                        		System.out.println("GrblStream Error: " + output);
+	                        		errors++;
+	                        		if(errors != 1) {
+		                        		System.exit(2);
+		                        		return;
+	                        		}
+	                        		else
+	                        			System.out.println("GrblStream Error ignored.");
+	                        	}
                         	}
                         }
                         else
@@ -331,7 +326,7 @@ public class GrblStream
             		}
             	}
             }
-            catch ( IOException e )
+            catch (  NumberFormatException | SerialPortException e )
             {
                 e.printStackTrace();
                 System.exit(-1);
@@ -341,12 +336,11 @@ public class GrblStream
 
     public class Updater implements Runnable 
     {
-        OutputStream out;
         public boolean exit = false;
-        
-        public Updater ( OutputStream out )
+        SerialPort port;
+        public Updater ( SerialPort out )
         {
-            this.out = out;
+            this.port = out;
         }
         
         public void run ()
@@ -384,7 +378,12 @@ public class GrblStream
     		updater_thread = null;
     		System.out.println("Updater stopped.");
     	}
-    	serialPort.closePort();
+    	try {
+			serialPort.closePort();
+		} catch (SerialPortException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	serialPort = null;
     }
 
