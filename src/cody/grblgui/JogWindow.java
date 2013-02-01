@@ -1,6 +1,6 @@
 package cody.grblgui;
 
-import cody.grbl.GrblConnection;
+
 import cody.grbl.GrblStream;
 
 import com.badlogic.gdx.Gdx;

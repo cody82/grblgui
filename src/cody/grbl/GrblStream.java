@@ -1,8 +1,6 @@
 package cody.grbl;
 
-import gnu.io.CommPort;
-import gnu.io.CommPortIdentifier;
-import gnu.io.SerialPort;
+import j.extensions.comm.SerialComm;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +29,7 @@ public class GrblStream
     
     GCodeFile gcode;
     
-    SerialPort serialPort;
+    SerialComm serialPort;
     public OutputStream out;
     public InputStream in;
     public Vector3 toolPosition = new Vector3();
@@ -133,24 +131,23 @@ public class GrblStream
     }
     void connect ( String portName ) throws Exception
     {
-        CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
-        if ( portIdentifier.isCurrentlyOwned() )
-        {
-            System.out.println("Error: Port is currently in use");
-        }
-        else
-        {
-            CommPort commPort = portIdentifier.open(this.getClass().getName(),2000);
-            
-            serialPort = (SerialPort) commPort;
-            serialPort.setSerialPortParams(9600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
-            
-            in = serialPort.getInputStream();
-            out = serialPort.getOutputStream();
-
-            updater_thread = new Thread(updater = new Updater(out));
-            updater_thread.start();
-        }
+    	SerialComm[] ports = SerialComm.getCommPorts();
+    	for(SerialComm c : ports) {
+    		String name = c.getSystemPortName();
+    		System.err.println(name);
+    		if(name.equals(portName)) {
+    			serialPort = c;
+    			serialPort.setComPortParameters(9600, 8, SerialComm.ONE_STOP_BIT, SerialComm.NO_PARITY);
+    			if(!serialPort.openPort())
+    				throw new Exception("cant open port " + portName);
+                in = serialPort.getInputStream();
+                out = serialPort.getOutputStream();
+                updater_thread = new Thread(updater = new Updater(out));
+                updater_thread.start();
+    			return;
+    		}
+    	}
+    	throw new Exception("port does not exist: " + portName);
     }
 
     
@@ -387,7 +384,7 @@ public class GrblStream
     		updater_thread = null;
     		System.out.println("Updater stopped.");
     	}
-    	serialPort.close();
+    	serialPort.closePort();
     	serialPort = null;
     }
 
