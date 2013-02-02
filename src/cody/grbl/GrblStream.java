@@ -2,6 +2,7 @@ package cody.grbl;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import jssc.SerialPortList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,9 @@ public class GrblStream
         createReader();
     }
     
+    public static String[] Ports() {
+    	return SerialPortList.getPortNames();
+    }
     GCodeFile gcode;
     
     SerialPort serialPort;

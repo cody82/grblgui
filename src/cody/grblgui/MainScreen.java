@@ -67,12 +67,18 @@ public class MainScreen implements Screen {
 	
 	@Override
 	public void dispose() {
-		grbl.dispose();
+		if(grbl != null) {
+			grbl.dispose();
+			grbl = null;
+		}
 	}
 
 	@Override
 	public void hide() {
-		grbl.dispose();
+		if(grbl != null) {
+			grbl.dispose();
+			grbl = null;
+		}
 	}
 
 	@Override
@@ -97,11 +103,13 @@ public class MainScreen implements Screen {
 		float t = arg0;
 		postimer+=t;
 
-		Vector3 tooltargetpos = grbl.toolPosition.cpy();
-		Vector3 d = tooltargetpos.sub(current.position);
-
-		Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
-		current.position = result;
+		if(grbl != null) {
+			Vector3 tooltargetpos = grbl.toolPosition.cpy();
+			Vector3 d = tooltargetpos.sub(current.position);
+	
+			Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
+			current.position = result;
+		}
 		//camera.rotate(1, 0, 1, 1);
 		//camera.lookAt(current.position.x, current.position.y, current.position.z);
 		camera.update(true);
@@ -126,7 +134,7 @@ public class MainScreen implements Screen {
 
 		orthocam.update();
 		
-		if(file != null) {
+		if(file != null && grbl != null) {
 			spriteBatch.setProjectionMatrix(orthocam.projection);
 			spriteBatch.setTransformMatrix(orthocam.view);
 			spriteBatch.begin();
@@ -257,14 +265,16 @@ public class MainScreen implements Screen {
         	}
         };
         
-		try {
-			grbl = new GrblStream(device);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-
+        if(device != null) {
+			try {
+				grbl = new GrblStream(device);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+        }
+        
         ui.addActor(new JogWindow(skin, grbl));
         ui.addActor(new ViewWindow(skin, this));
         //ui.addActor(new SettingsWindow(skin));

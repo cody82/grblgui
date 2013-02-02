@@ -86,7 +86,19 @@ public class ControlWindow extends Window{
     				return true;
             	}});
 
-        FileHandle fh = Gdx.files.absolute(dir_or_file);
+        FileHandle fh;
+        if(dir_or_file != null)
+        	fh = Gdx.files.absolute(dir_or_file);
+        else {
+        	fh = Gdx.files.external("grblgui-gcode");
+        	if(!fh.exists()) {
+            	fh = Gdx.files.local("grblgui-gcode");
+            	if(!fh.exists()) {
+                	fh = Gdx.files.local(".");
+            	}
+        	}
+        }
+        
         FileHandle[] files;
         boolean isDirectory = fh.isDirectory();
         if(isDirectory) {
@@ -158,6 +170,37 @@ public class ControlWindow extends Window{
             				grbl.send(new byte[]{0x18});
     				return true;
             	}});
+        
+        final SelectBox port_select = new SelectBox(GrblStream.Ports(),skin);
+
+        final TextButton port_button = new TextButton("Open port", skin);
+        port_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null) {
+            		try {
+						mainscreen.grbl = grbl = new GrblStream(port_select.getSelection());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+            		port_button.setText("Close port");
+            			}
+            			else {
+            				grbl.dispose();
+    						mainscreen.grbl = grbl = null;
+    	            		port_button.setText("Open port");
+            				
+            			}
+    				return true;
+            	}});
+
+        
+        add(port_select).fill().expand();
+        row();
+        add(port_button).fill().expand();
+        row();
         
         add(file_select).fill().expand();
         row();

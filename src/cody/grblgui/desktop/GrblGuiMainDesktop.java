@@ -11,16 +11,25 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 
 public class GrblGuiMainDesktop {
 	static void displayHelp() {
-		System.out.println("usage: java -jar grblgui.jar <gcode-file-or-directory> <grbl-device-file>");
+		System.out.println("usage: java -jar grblgui.jar [<gcode-file-or-directory> [<grbl port>]]");
 		System.out.println("\texample: java -jar grblgui.jar /home/cody/gcode/ /dev/ttyACM0");
 	}
 	public static void main (String[] argv) {
-		if(argv.length != 2) {
+		/*if(argv.con) {
 			displayHelp();
 			return;
+		}*/
+		
+		String dir = null;
+		String port = null;
+		if(argv.length > 0) {
+			dir = argv[0];
+			if(argv.length > 1) {
+				port = argv[1];
+			}
 		}
 		
-		Main main = new Main(argv[0], argv[1]);
+		Main main = new Main(dir, port);
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.samples = 2;
 		config.width = 1280;

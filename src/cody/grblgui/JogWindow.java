@@ -31,6 +31,9 @@ public class JogWindow extends Window {
 	
 	@Override
 	public void draw(SpriteBatch arg0, float arg1) {
+		super.draw(arg0, arg1);
+		if(grbl == null)
+			return;
 		Vector3 pos = grbl.toolPosition;
 		set.setVisible(!current.isChecked());
 		if(current.isChecked()) {
@@ -44,7 +47,6 @@ public class JogWindow extends Window {
 		if(!tmp.equals(z.getText()))
 			z.setText(tmp);
 		}
-		super.draw(arg0, arg1);
 	}
 	
 	float getStep() {
