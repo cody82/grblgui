@@ -7,7 +7,6 @@ http://spacewar-arena.com/cnc/files/grblgui.jar
 
 ## Requirements
 * Java 1.6
-* RXTX (Ubuntu: apt-get install librxtx-java)
 * OpenGL 2.0
 
 ## Usage
