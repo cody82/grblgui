@@ -188,9 +188,16 @@ public class GrblStream
 										toolPosition.y = Float.parseFloat(s2[1]);
 										toolPosition.z = Float.parseFloat(s2[2]);
 									} else if (output.startsWith("<")) {
-										System.out.println("Wrong grbl-version?(TODO)");
-										System.exit(2);
-										return;
+										String mpos = output.substring(output.indexOf("MPos:") + 5);
+										String[] s = mpos.split(",");
+										machinePosition.x = Float.parseFloat(s[0]);
+										machinePosition.y = Float.parseFloat(s[1]);
+										machinePosition.z = Float.parseFloat(s[2]);
+										String wpos = output.substring(output.indexOf("WPos:") + 5);
+										String[] s2 = wpos.split("[,>]");
+										toolPosition.x = Float.parseFloat(s2[0]);
+										toolPosition.y = Float.parseFloat(s2[1]);
+										toolPosition.z = Float.parseFloat(s2[2]);
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
 									} else {
@@ -289,9 +296,16 @@ public class GrblStream
 									toolPosition.y = Float.parseFloat(s2[1]);
 									toolPosition.z = Float.parseFloat(s2[2]);
 								} else if (output.startsWith("<")) {
-									System.out.println("Wrong grbl-version?(TODO)");
-									System.exit(2);
-									return;
+									String mpos = output.substring(output.indexOf("MPos:") + 5);
+									String[] s = mpos.split(",");
+									machinePosition.x = Float.parseFloat(s[0]);
+									machinePosition.y = Float.parseFloat(s[1]);
+									machinePosition.z = Float.parseFloat(s[2]);
+									String wpos = output.substring(output.indexOf("WPos:") + 5);
+									String[] s2 = wpos.split("[,>]");
+									toolPosition.x = Float.parseFloat(s2[0]);
+									toolPosition.y = Float.parseFloat(s2[1]);
+									toolPosition.z = Float.parseFloat(s2[2]);
 								} else {
 	                        		System.out.println("GrblStream Error: " + output);
 	                        		errors++;
