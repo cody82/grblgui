@@ -30,7 +30,7 @@ public class ControlWindow extends Window{
 	public ControlWindow(Skin skin, GrblStream _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
 		grbl = _grbl;
-		setBounds(600, 0, 250, 300);
+		setBounds(600, 0, 250, 350);
 		setColor(0.5f, 0.5f, 0.5f, 0.8f);
 		String dir_or_file = _mainscreen.filename;
 		mainscreen = _mainscreen;
@@ -40,6 +40,8 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null)
+            				return true;
             			if(grbl.isStreaming()) {
             				grbl.stopStream();
             				stream_button.setText("Start streaming");
@@ -61,6 +63,8 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null)
+            				return true;
             			grbl.pause();
             			if(grbl.isHold()) {
             				hold_button.setText("Disable feed hold");
@@ -167,6 +171,8 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null)
+            				return true;
             				grbl.send(new byte[]{0x18});
     				return true;
             	}});
@@ -196,6 +202,16 @@ public class ControlWindow extends Window{
     				return true;
             	}});
 
+        final TextButton home_button = new TextButton("Home", skin);
+        home_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null)
+            				return true;
+        				grbl.send(new byte[]{'$','H','\n'});
+    				return true;
+            	}});
         
         add(port_select).fill().expand();
         row();
@@ -216,6 +232,8 @@ public class ControlWindow extends Window{
         add(stream_button).fill().expand();
         row();
         add(hold_button).fill().expand();
+        row();
+        add(home_button).fill().expand();
         row();
         add(reset_button).fill().expand();
         row();

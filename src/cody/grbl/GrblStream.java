@@ -204,6 +204,10 @@ public class GrblStream
 										toolPosition.z = Float.parseFloat(s2[2]);
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
+									} else if (output.startsWith("['$H'|'$X' to unlock]")) {
+										//send("$X\n".getBytes());
+									} else if (output.startsWith("[Caution: Unlocked]")) {
+										System.out.println("Unlocked!");
 									} else {
 										System.out.println("GrblReader Error: "+ output);
 										System.exit(2);

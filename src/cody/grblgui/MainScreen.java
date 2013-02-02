@@ -275,7 +275,7 @@ public class MainScreen implements Screen {
 			}
         }
         
-        ui.addActor(new JogWindow(skin, grbl));
+        ui.addActor(new JogWindow(skin, this));
         ui.addActor(new ViewWindow(skin, this));
         //ui.addActor(new SettingsWindow(skin));
         ui.addActor(new ControlWindow(skin, grbl, this));

@@ -19,7 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public class JogWindow extends Window {
-	GrblStream grbl;
+	MainScreen mainscreen;
 	
 	TextField x;
 	TextField y;
@@ -32,9 +32,9 @@ public class JogWindow extends Window {
 	@Override
 	public void draw(SpriteBatch arg0, float arg1) {
 		super.draw(arg0, arg1);
-		if(grbl == null)
+		if(mainscreen.grbl == null)
 			return;
-		Vector3 pos = grbl.toolPosition;
+		Vector3 pos = mainscreen.grbl.toolPosition;
 		set.setVisible(!current.isChecked());
 		if(current.isChecked()) {
 		String tmp = Float.toString(pos.x);
@@ -62,28 +62,32 @@ public class JogWindow extends Window {
 		return Float.parseFloat(z.getText());
 	}
 	void jog(float x, float y, float z) {
-		if(grbl.isStreaming())
+		if(mainscreen.grbl == null)
+			return;
+		if(mainscreen.grbl.isStreaming())
 			return;
 		float step = getStep();
-		Vector3 v = grbl.toolPosition.cpy();
+		Vector3 v = mainscreen.grbl.toolPosition.cpy();
 		v.add(x * step, y * step, z * step);
-		grbl.send(("G0X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
+		mainscreen.grbl.send(("G0X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
 		//grbl.send(("G1" + "\n").getBytes());
 		
 	}
 	
 
 	void go() {
-		if(grbl.isStreaming())
+		if(mainscreen.grbl == null)
 			return;
-		grbl.send(("G0X" + getXpos() + "Y" + getYpos() + "Z" + getZpos() + "\n").getBytes());
+		if(mainscreen.grbl.isStreaming())
+			return;
+		mainscreen.grbl.send(("G0X" + getXpos() + "Y" + getYpos() + "Z" + getZpos() + "\n").getBytes());
 		//grbl.send(("G1" + "\n").getBytes());
 		
 	}
 	
-	public JogWindow(Skin skin, GrblStream _grbl) {
+	public JogWindow(Skin skin, MainScreen _mainscreen) {
 		super("Jog", skin);
-		grbl = _grbl;
+		mainscreen = _mainscreen;
 		
 		setBounds(0, 0, 200, 400);
 		setColor(1, 0, 0, 0.8f);
@@ -109,10 +113,12 @@ public class JogWindow extends Window {
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                		if(!grbl.isStreaming()) {
+            			if(mainscreen.grbl == null)
+            				return true;
+                		if(!mainscreen.grbl.isStreaming()) {
                 			//Vector3 v = grbl.machinePosition.cpy().sub(grbl.toolPosition.cpy());
-                			Vector3 v = grbl.machinePosition.cpy();
-                			grbl.send(("G10 L2 P1 X" + v.x + " Y" + v.y +" Z" + v.z + "\n").getBytes());
+                			Vector3 v = mainscreen.grbl.machinePosition.cpy();
+                			mainscreen.grbl.send(("G10 L2 P1 X" + v.x + " Y" + v.y +" Z" + v.z + "\n").getBytes());
                 		}
     				return true;
             	}});
