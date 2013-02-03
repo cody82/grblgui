@@ -6,7 +6,7 @@ http://spacewar-arena.com/cnc/files/grblgui.zip
 ![screenshot](https://github.com/cody82/grblgui/raw/master/grblgui2.png)
 
 ## Requirements
-* Java 1.6
+* Java 1.7
 * OpenGL 2.0
 
 ## Usage
@@ -16,3 +16,8 @@ Example: `java -jar grblgui.jar /home/cody/gcode/ /dev/ttyACM0`
 
 If you start the program without parameters, it will look for g-code files in `~/grblgui-gcode` 
 and in `grblgui-gcode` next to `grblgui.jar`.
+
+## Development
+For compiling you need:
+* Eclipse 3.6(?)
+* Eclipse Scala plugin with Scala 2.10
