@@ -3,7 +3,6 @@ package cody.grblgui;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-import scala.Tuple2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -17,6 +16,7 @@ import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.loaders.obj.ObjLoader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 
 public class Part {
 	public Part(String obj_file, String texture_file) throws FileNotFoundException {
@@ -25,7 +25,10 @@ public class Part {
 		texture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 		texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 	}
+	public Part() {
+	}
 	
+	/*
 	Mesh generateMesh(Simulation sim) {
 		float[] verts = new float[(sim.count_x() + 1) * 2 * (sim.count_y() - 1) * (3 + 1)];
 		System.out.println(verts.length / (3 + 1));
@@ -40,17 +43,17 @@ public class Part {
 			for(int x = 0; x < sim.count_x(); ++x) {
 				
 				float pz = sim.getZ(x, y);
-				Vector2D v = sim.index_to_position(x, y);
-				float px = v.x();
-				float py = v.y();
+				Vector2 v = sim.index_to_position(x, y);
+				float px = v.x;
+				float py = v.y;
 				float c1 = (max - pz) / (max - min);
 				if(pz != max)
 					c1 = Math.max(0.2f, c1);
 				
 				float pz2 = sim.getZ(x, y + 1);
-				Vector2D v2 = sim.index_to_position(x, y + 1);
-				float px2 = v2.x();
-				float py2 = v2.y();
+				Vector2 v2 = sim.index_to_position(x, y + 1);
+				float px2 = v2.x;
+				float py2 = v2.y;
 				float c2 = (max - pz2) / (max - min);
 				if(pz2 != max)
 					c2 = Math.max(0.2f, c2);
@@ -92,9 +95,9 @@ public class Part {
 		texture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
 		texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 	}
-	
-	Mesh mesh;
-	Texture texture;
+	*/
+	protected Mesh mesh;
+	protected Texture texture;
 	
 	public void draw(Matrix4 matrix) {
 		//m.translate(position.x, position.y, position.z);

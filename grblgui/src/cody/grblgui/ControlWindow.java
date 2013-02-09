@@ -2,11 +2,11 @@ package cody.grblgui;
 
 import java.io.IOException;
 
-import scala.Tuple2;
 
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeParser;
-import cody.grbl.GrblStream;
+import cody.grbl.GrblStreamFactory;
+import cody.grbl.GrblStreamInterface;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -22,12 +22,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public class ControlWindow extends Window{
 
-	GrblStream grbl;
+	GrblStreamInterface grbl;
 	GCodeFile file;
 	MainScreen mainscreen;
 	TextField tool_radius;
 	
-	public ControlWindow(Skin skin, GrblStream _grbl, MainScreen _mainscreen) {
+	public ControlWindow(Skin skin, GrblStreamInterface _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
 		grbl = _grbl;
 		setBounds(600, 0, 250, 350);
@@ -124,14 +124,11 @@ public class ControlWindow extends Window{
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
             			FileHandle f = filesfinal[file_select.getSelectionIndex()];
             			
-
+            			
             			try {
-            				file = GCodeParser.parseFile(f.path());
+            				file = GCodeParser.parse(f.readString());
             				mainscreen.file = file;
             				mainscreen.toolpath = Toolpath.fromGCode(file);
-            			} catch (IOException e) {
-            				e.printStackTrace();
-            				System.exit(1);
             			}
             			catch (Exception e) {
             				e.printStackTrace();
@@ -149,7 +146,7 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            				Simulation sim = new Simulation(300, 400, 50, 1f);
+            				/*Simulation sim = new Simulation(300, 400, 50, 1f);
             				mainscreen.toolsize = Float.parseFloat(tool_radius.getText());
             				sim.simulate(mainscreen.toolpath, new ToolInfo(mainscreen.toolsize));
             				Tuple2<Object, Object> tmp = sim.getZminmax();
@@ -159,9 +156,13 @@ public class ControlWindow extends Window{
             				System.out.println("min: " + min + " max: " + max);
 
             				mainscreen.part = new Part(sim);
-            				mainscreen.draw_part = true;
-            			
-            			
+            				mainscreen.draw_part = true;*/
+
+        				mainscreen.toolsize = Float.parseFloat(tool_radius.getText());
+
+        				mainscreen.part = SimulationConverter.convert(mainscreen.toolpath, new ToolInfo(mainscreen.toolsize));
+        				if(mainscreen.part != null)
+        					mainscreen.draw_part = true;
     				return true;
             	}});
 
@@ -177,7 +178,7 @@ public class ControlWindow extends Window{
     				return true;
             	}});
         
-        final SelectBox port_select = new SelectBox(GrblStream.Ports(),skin);
+        final SelectBox port_select = new SelectBox(GrblStreamFactory.ports(),skin);
 
         final TextButton port_button = new TextButton("Open port", skin);
         port_button.addListener(
@@ -186,7 +187,7 @@ public class ControlWindow extends Window{
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
             			if(grbl == null) {
             		try {
-						mainscreen.grbl = grbl = new GrblStream(port_select.getSelection());
+						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelection());
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

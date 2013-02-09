@@ -1,8 +1,6 @@
 package cody.grblgui;
 
 
-import cody.grbl.GrblStream;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
@@ -34,7 +32,7 @@ public class JogWindow extends Window {
 		super.draw(arg0, arg1);
 		if(mainscreen.grbl == null)
 			return;
-		Vector3 pos = mainscreen.grbl.toolPosition;
+		Vector3 pos = mainscreen.grbl.getToolPosition();
 		set.setVisible(!current.isChecked());
 		if(current.isChecked()) {
 		String tmp = Float.toString(pos.x);
@@ -67,7 +65,7 @@ public class JogWindow extends Window {
 		if(mainscreen.grbl.isStreaming())
 			return;
 		float step = getStep();
-		Vector3 v = mainscreen.grbl.toolPosition.cpy();
+		Vector3 v = mainscreen.grbl.getToolPosition().cpy();
 		v.add(x * step, y * step, z * step);
 		mainscreen.grbl.send(("G0X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
 		//grbl.send(("G1" + "\n").getBytes());
@@ -117,7 +115,7 @@ public class JogWindow extends Window {
             				return true;
                 		if(!mainscreen.grbl.isStreaming()) {
                 			//Vector3 v = grbl.machinePosition.cpy().sub(grbl.toolPosition.cpy());
-                			Vector3 v = mainscreen.grbl.machinePosition.cpy();
+                			Vector3 v = mainscreen.grbl.getMachinePosition().cpy();
                 			mainscreen.grbl.send(("G10 L2 P1 X" + v.x + " Y" + v.y +" Z" + v.z + "\n").getBytes());
                 		}
     				return true;

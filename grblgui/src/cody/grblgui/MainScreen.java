@@ -1,17 +1,8 @@
 package cody.grblgui;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import scala.Tuple2;
-
 import cody.gcode.GCodeFile;
-import cody.gcode.GCodeParser;
-import cody.grbl.GrblStream;
+import cody.grbl.GrblStreamFactory;
+import cody.grbl.GrblStreamInterface;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -23,17 +14,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public class MainScreen implements Screen {
 
-	GrblStream grbl;
+	GrblStreamInterface grbl;
 	
 	Workspace workspace;
 	PerspectiveCamera camera;
@@ -104,7 +90,7 @@ public class MainScreen implements Screen {
 		postimer+=t;
 
 		if(grbl != null) {
-			Vector3 tooltargetpos = grbl.toolPosition.cpy();
+			Vector3 tooltargetpos = grbl.getToolPosition().cpy();
 			Vector3 d = tooltargetpos.sub(current.position);
 	
 			Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
@@ -138,7 +124,7 @@ public class MainScreen implements Screen {
 			spriteBatch.setProjectionMatrix(orthocam.projection);
 			spriteBatch.setTransformMatrix(orthocam.view);
 			spriteBatch.begin();
-			int currentline = toolpath.currentLine = grbl.streamer != null ? grbl.streamer.currentLine : -1;
+			int currentline = toolpath.currentLine = grbl.isStreaming() ? grbl.getCurrentLine() : -1;
 			
 			int maxlines = Gdx.graphics.getHeight() / 20 - 1;
 			for(int i = currentline;i > 0 && i > currentline - maxlines;--i) {
@@ -146,7 +132,7 @@ public class MainScreen implements Screen {
 					font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
 			}
 		
-			font.draw(spriteBatch, "position: X" + grbl.toolPosition.x + "Y" + grbl.toolPosition.y + "Z" +grbl.toolPosition.z, Gdx.graphics.getWidth() - 220, 100);
+			font.draw(spriteBatch, "position: X" + grbl.getToolPosition().x + "Y" + grbl.getToolPosition().y + "Z" +grbl.getToolPosition().z, Gdx.graphics.getWidth() - 220, 100);
 			font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
 			font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
 			if(grbl.isStreaming()) {
@@ -156,6 +142,7 @@ public class MainScreen implements Screen {
 			spriteBatch.end();
 		}
 		
+		
 		if (Gdx.input.isButtonPressed(1)) {
 			int x = Gdx.input.getX();
 			int y = Gdx.input.getY();
@@ -163,6 +150,18 @@ public class MainScreen implements Screen {
 			tool.position = pos;
 		}
 
+
+		if(Gdx.input.isTouched(0)) {
+			if(Gdx.input.isTouched(2)) {
+        		cam_move((float)Gdx.input.getDeltaY() * camera.position.len() * -0.01f);
+			}
+			else if(Gdx.input.isTouched(1)) {
+				cam_rotate();
+			}
+			else {
+				cam_translate();
+			}
+		}
 		
 		if(Gdx.input.isButtonPressed(2)) {
 			if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT))
@@ -267,7 +266,7 @@ public class MainScreen implements Screen {
         
         if(device != null) {
 			try {
-				grbl = new GrblStream(device);
+				grbl = GrblStreamFactory.create(device);
 			}
 			catch (Exception e) {
 				e.printStackTrace();

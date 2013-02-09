@@ -1,16 +1,20 @@
 package cody.grblgui
 
 import Array.ofDim
+import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.math.Vector2
+import cody.grblgui.ToolInfo
+import cody.grblgui.Toolpath
 
 class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Float) {
 	val count_x : Int = (size_x / precision).toInt;
 	val count_y : Int = (size_y / precision).toInt;
 	var map:Array[Array[Float]] = ofDim[Float](count_x,count_y)
-	var zero = Vector2D(-size_x / 2f,-size_y / 2f)
+	var zero = new Vector2(-size_x / 2f,-size_y / 2f)
 	
-	def index_to_position(x : Int, y : Int) : Vector2D = Vector2D(zero.x + x * precision, zero.y + y * precision)
+	def index_to_position(x : Int, y : Int) : Vector2 = new Vector2(zero.x + x * precision, zero.y + y * precision)
 	
-	def position_to_index(v : Vector2D) = (((v.x - zero.x) / precision).toInt, ((v.y - zero.y) / precision).toInt)
+	def position_to_index(v : Vector2) = (((v.x - zero.x) / precision).toInt, ((v.y - zero.y) / precision).toInt)
 	def position_to_index(x : Float, y : Float) = (((x - zero.x) / precision).toInt, ((y - zero.y) / precision).toInt)
 	def length_to_count(l : Float) : Int = (l / precision).toInt
 	
@@ -33,15 +37,15 @@ class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Flo
 		  map(x)(y) = math.min(map(x)(y), z)
 	}
 	
-	def mill(pos : Vector3D, tool : ToolInfo) {
+	def mill(pos : Vector3, tool : ToolInfo) {
 	  val center = position_to_index(pos.x, pos.y)
 	  val count = length_to_count(tool.getRadius())
 	  for(x <- center._1 - count to center._1 + count) {
 		  for(y <- center._2 - count to center._2 + count) {
 			  var p = index_to_position(x,y)
-			  p = Vector2D(p.x - pos.x, p.y - pos.y)
+			  p = new Vector2(p.x - pos.x, p.y - pos.y)
 			  
-			  val dist = p.length
+			  val dist = p.len()
 			  if(dist < tool.getRadius()) {
 			    //println("mill " + pos.x + " " + pos.y + " " + pos.z + " " + x + " " + y)
 			    mill(x, y, pos.z)
@@ -64,7 +68,7 @@ class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Flo
 	        p.mul(j)
 	        p.div(segments)
 	        p.add(cur)
-	        mill(Vector3D(p.x,p.y,p.z), tool)
+	        mill(new Vector3(p.x,p.y,p.z), tool)
 	      }
 	    }
 	    cur = next
