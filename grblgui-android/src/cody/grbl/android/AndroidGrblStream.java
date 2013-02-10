@@ -1,36 +1,33 @@
-package cody.grbl;
+package cody.grbl.android;
 
-import jssc.SerialPort;
-import jssc.SerialPortException;
-import jssc.SerialPortList;
+import java.io.IOException;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.Vector3;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
 
 import cody.gcode.GCodeCommand;
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeLine;
+import cody.grbl.GrblStreamInterface;
 
-import com.badlogic.gdx.math.Vector3;
-
-
-public class GrblStream implements GrblStreamInterface
-{
-    public GrblStream(String portName, GCodeFile file) throws Exception
-    {
-    	gcode = file;
-        connect(portName);
-        stream(file);
-    }
-    public GrblStream(String portName) throws Exception
-    {
-        connect(portName);
+public class AndroidGrblStream implements GrblStreamInterface {
+	UsbSerialDriver driver;
+	FileHandle logfile;
+	
+	public AndroidGrblStream(UsbSerialDriver _driver) throws Exception {
+		driver = _driver;
+		logfile = Gdx.files.external("grblgui-log.txt");
+        connect("");
         createReader();
-    }
-    
-    public static String[] Ports() {
-    	return SerialPortList.getPortNames();
-    }
+	}
+	
+	void log(String s) {
+		logfile.writeString(s + "\r\n", true);
+	}
     GCodeFile gcode;
     
-    SerialPort serialPort;
     private Vector3 toolPosition = new Vector3();
     private Vector3 machinePosition = new Vector3();
     private Streamer streamer;
@@ -48,14 +45,14 @@ public class GrblStream implements GrblStreamInterface
     		return 0;
     	}
     }
-    synchronized void write(byte[] data) throws SerialPortException {
-    	serialPort.writeBytes(data);
+    synchronized void write(byte[] data) throws IOException {
+    	driver.write(data, data.length);
     }
     
     synchronized public void send(byte[] data) {
     	try {
 			write(data);
-		} catch (SerialPortException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(13);
 		}
@@ -72,7 +69,7 @@ public class GrblStream implements GrblStreamInterface
     	try {
 			write(new byte[]{(byte) (is_paused ? '~' : '!')});
 			is_paused = !is_paused;
-		} catch (SerialPortException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(4);
 		}
@@ -94,7 +91,8 @@ public class GrblStream implements GrblStreamInterface
     }
     
     void createReader() {
-        reader = new Reader(serialPort);
+    	log("serial: create reader");
+        reader = new Reader(driver);
         reader_thread = new Thread(reader);
         reader_thread.start();
     }
@@ -122,7 +120,7 @@ public class GrblStream implements GrblStreamInterface
     	Reader r = reader;
     	stopReader();
     	
-        streamer = new Streamer(serialPort, file);
+        streamer = new Streamer(driver, file);
         streamer.buffer = r.buffer;
         streamer_thread = new Thread(streamer);
         streamer_thread.start();
@@ -135,24 +133,23 @@ public class GrblStream implements GrblStreamInterface
     }
     void connect ( String portName ) throws Exception
     {
-    	serialPort = new SerialPort(portName);
-    	if(!serialPort.openPort())
-    		throw new Exception("cant open port");	
-    	if(!serialPort.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE))
-    		throw new Exception("cant set port params");
+    	driver.open();
+    	driver.setBaudRate(9600);
 
-        updater_thread = new Thread(updater = new Updater(serialPort));
+    	log("serial port open");
+
+        updater_thread = new Thread(updater = new Updater(driver));
         updater_thread.start();
     }
 
     
     public class Reader implements Runnable 
     {
-        private SerialPort in;
+        private UsbSerialDriver in;
         private byte[] buffer = new byte[1024];
         public boolean exit = false;
         
-        public Reader ( SerialPort in )
+        public Reader ( UsbSerialDriver in )
         {
             this.in = in;
         }
@@ -166,9 +163,12 @@ public class GrblStream implements GrblStreamInterface
 
 				while (!exit) {
 					//System.out.println("1");
-					while (in.getInputBufferBytesCount() > 0 && (!exit || len != 0)) {
+					byte[] buffer2 = new byte[1];
+					
+					while (in.read(buffer2, 1) > 0 && (!exit || len != 0)) {
 						//System.out.println("2");
-						if ((data = in.readBytes(1)[0]) > -1) {
+						if ((data = buffer2[0]) > -1) {
+					    	log("serial: " + data);
 							//System.out.println("3");
 							//System.out.println(data);
 							if ((data == '\n' || data == '\r')) {
@@ -225,14 +225,16 @@ public class GrblStream implements GrblStreamInterface
 					Thread.sleep(20, 0);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+			    	log("serial: reader exception 12234554");
 	                System.exit(-1);
 					
 				}
         		}
             }
-            catch ( NumberFormatException | SerialPortException e )
+            catch ( Exception e )
             {
                 e.printStackTrace();
+		    	log("serial: reader exception 4545");
                 System.exit(-1);
             }    
         }
@@ -244,9 +246,9 @@ public class GrblStream implements GrblStreamInterface
         GCodeFile gcode;
         public int currentLine;
         public boolean exit = false;
-        SerialPort port;
+        UsbSerialDriver port;
         
-        public Streamer ( SerialPort port, GCodeFile gcode)
+        public Streamer ( UsbSerialDriver port, GCodeFile gcode)
         {
             this.port = port;
             this.gcode = gcode;
@@ -278,9 +280,10 @@ public class GrblStream implements GrblStreamInterface
                     boolean ok = false;
             		int len = 0;
             		while(!ok) {
-            			
-                    while ( port.getInputBufferBytesCount() > 0 ) {
-                    	data = port.readBytes(1)[0];
+
+    					byte[] buffer2 = new byte[1];
+                    while ( port.read(buffer2, 1) > 0 ) {
+                    	data = buffer2[0];
                         if ( (data == '\n' || data == '\r')) {
                         	if(len > 0) {
 	                            String output = new String(buffer,0,len);
@@ -344,7 +347,7 @@ public class GrblStream implements GrblStreamInterface
             		}
             	}
             }
-            catch (  NumberFormatException | SerialPortException e )
+            catch (  Exception e )
             {
                 e.printStackTrace();
                 System.exit(-1);
@@ -355,8 +358,8 @@ public class GrblStream implements GrblStreamInterface
     public class Updater implements Runnable 
     {
         public boolean exit = false;
-        SerialPort port;
-        public Updater ( SerialPort out )
+        UsbSerialDriver port;
+        public Updater ( UsbSerialDriver out )
         {
             this.port = out;
         }
@@ -373,6 +376,7 @@ public class GrblStream implements GrblStreamInterface
             	}
             }catch (InterruptedException e) {
 				e.printStackTrace();
+		    	log("serial: updater exception 4545");
 				System.exit(10);
 			}            
         }
@@ -395,11 +399,11 @@ public class GrblStream implements GrblStreamInterface
     		System.out.println("Updater stopped.");
     	}
     	try {
-			serialPort.closePort();
-		} catch (SerialPortException e) {
+			driver.close();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	serialPort = null;
+    	driver = null;
     }
 	public Vector3 getToolPosition() {
 		return toolPosition;

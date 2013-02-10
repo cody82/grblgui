@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/grblgui"/>
 	<classpathentry kind="lib" path="libs/gdx-backend-android.jar"/>
 	<classpathentry kind="lib" path="libs/gdx.jar"/>
+	<classpathentry kind="lib" path="libs/usb-serial-for-android-v010.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
