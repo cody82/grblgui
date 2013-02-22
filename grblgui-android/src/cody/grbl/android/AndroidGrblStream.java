@@ -19,6 +19,7 @@ public class AndroidGrblStream implements GrblStreamInterface {
 	public AndroidGrblStream(UsbSerialDriver _driver) throws Exception {
 		driver = _driver;
 		logfile = Gdx.files.external("grblgui-log.txt");
+		log("serial constructor");
         connect("");
         createReader();
 	}
@@ -163,12 +164,13 @@ public class AndroidGrblStream implements GrblStreamInterface {
 
 				while (!exit) {
 					//System.out.println("1");
-					byte[] buffer2 = new byte[1];
-					
-					while (in.read(buffer2, 1) > 0 && (!exit || len != 0)) {
+					byte[] buffer2 = new byte[1024];
+					int bytesread;
+					while ((bytesread=in.read(buffer2, 1024)) > 0 && (!exit || len != 0)) {
 						//System.out.println("2");
-						if ((data = buffer2[0]) > -1) {
-					    	log("serial: " + data);
+						for(int i=0;i<bytesread;++i) {
+							data = buffer2[i];
+					    	//log("serial: " + new String(new byte[]{data},0,1));
 							//System.out.println("3");
 							//System.out.println(data);
 							if ((data == '\n' || data == '\r')) {
@@ -176,7 +178,7 @@ public class AndroidGrblStream implements GrblStreamInterface {
 								if (len > 0) {
 									String output = new String(buffer, 0, len);
 									len = 0;
-									System.out.println("GrblReader Received: "+ output);
+									log("GrblReader Received: "+ output);
 									if (output.equals("ok")) {
 									} else if (output.contains("MPos:[")) {
 										String mpos = output.substring(output.indexOf("MPos:[") + 6);
@@ -207,7 +209,7 @@ public class AndroidGrblStream implements GrblStreamInterface {
 									} else if (output.startsWith("[Caution: Unlocked]")) {
 										System.out.println("Unlocked!");
 									} else {
-										System.out.println("GrblReader Error: "+ output);
+										log("GrblReader Error: "+ output);
 										System.exit(2);
 										return;
 									}
@@ -235,6 +237,9 @@ public class AndroidGrblStream implements GrblStreamInterface {
             {
                 e.printStackTrace();
 		    	log("serial: reader exception 4545");
+		    	log(e.toString());
+		    	for(int i=0;i<e.getStackTrace().length;++i)
+		    		log(e.getStackTrace()[i].toString());
                 System.exit(-1);
             }    
         }
