@@ -3,11 +3,11 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl.jar"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-backend-lwjgl-natives.jar"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx.jar" sourcepath="/home/cody/workspace/grblgui/grblgui/libs/gdx-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/libgdx/gdx-natives.jar"/>
-	<classpathentry kind="lib" path="C:/Users/cody/Documents/GitHub/grblgui/lib/jssc.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/grblgui"/>
+	<classpathentry kind="lib" path="/grblgui-lib/src/jssc/jssc.jar"/>
+	<classpathentry kind="lib" path="/grblgui-lib/src/libgdx/gdx.jar"/>
+	<classpathentry kind="lib" path="/grblgui-lib/src/libgdx/gdx-natives.jar"/>
+	<classpathentry kind="lib" path="/grblgui-lib/src/libgdx/gdx-backend-lwjgl.jar"/>
+	<classpathentry kind="lib" path="/grblgui-lib/src/libgdx/gdx-backend-lwjgl-natives.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
