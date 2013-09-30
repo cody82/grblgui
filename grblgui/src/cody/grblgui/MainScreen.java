@@ -3,6 +3,7 @@ package cody.grblgui;
 import cody.gcode.GCodeFile;
 import cody.grbl.GrblStreamFactory;
 import cody.grbl.GrblStreamInterface;
+import cody.grbl.GrblStreamListener;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -17,7 +18,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public class MainScreen implements Screen {
 
@@ -133,12 +136,11 @@ public class MainScreen implements Screen {
 			
 			if(lastline < 0)
 				lastline = 0;
-				for(int i = lastline; i <= currentline; ++i) {
-					console.writeLine(file.gcode.get(i).getContent());
-				}
-				lastline = currentline + 1;
+			for(int i = lastline; i <= currentline; ++i) {
+				console.writeLine(file.gcode.get(i).getContent());
+			}
+			lastline = currentline + 1;
 				
-			font.draw(spriteBatch, "position: X" + grbl.getToolPosition().x + "Y" + grbl.getToolPosition().y + "Z" +grbl.getToolPosition().z, Gdx.graphics.getWidth() - 220, 100);
 			font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
 			font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
 			if(grbl.isStreaming()) {
@@ -252,6 +254,13 @@ public class MainScreen implements Screen {
 		
 	}
 	
+	public void showMessage(String text, String caption) {
+		Dialog w = new Dialog(caption, skin);
+		w.text(text);
+		w.button("Ok");
+		w.setModal(true);
+		w.show(ui);
+	}
 	@Override
 	public void show() {
 		spriteBatch = new SpriteBatch();
@@ -286,10 +295,18 @@ public class MainScreen implements Screen {
 				return true;
         	}
         };
+
+        ui.addActor(console = new ConsoleWindow(skin, this));
         
         if(device != null) {
 			try {
 				grbl = GrblStreamFactory.create(device);
+				grbl.setListener(new GrblStreamListener(){
+					@Override
+					public void received(String line) {
+						console.queueLine(line);
+					}
+				});
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -299,7 +316,6 @@ public class MainScreen implements Screen {
         
         ui.addActor(new JogWindow(skin, this));
         ui.addActor(new ViewWindow(skin, this));
-        ui.addActor(console = new ConsoleWindow(skin, this));
         //ui.addActor(new SettingsWindow(skin));
         ui.addActor(new ControlWindow(skin, grbl, this));
 	    

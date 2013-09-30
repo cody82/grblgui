@@ -11,6 +11,7 @@ public class ViewWindow extends Window {
 	
 	MainScreen mainscreen;
 	CheckBox draw_part;
+	CheckBox show_console;
 	
 	public ViewWindow(Skin skin, MainScreen _mainscreen) {
 		super("View", skin);
@@ -42,6 +43,18 @@ public class ViewWindow extends Window {
 		add(ztest).fill().expand();
 		
 		row();
+		
+		show_console = new CheckBox("Show console", skin);
+		show_console.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                		mainscreen.console.setVisible(!show_console.isChecked());
+    				return true;
+            	}});
+		add(show_console).fill().expand();
+		row();
+		
 		add(new Label("Camera", skin)).fill().expand();
 	}
 

@@ -3,7 +3,6 @@ package cody.grbl;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
-
 import cody.gcode.GCodeCommand;
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeLine;
@@ -24,7 +23,12 @@ public class GrblStream implements GrblStreamInterface
         connect(portName);
         createReader();
     }
-    
+
+    GrblStreamListener listener;
+	public void setListener(GrblStreamListener listener) {
+		this.listener = listener;
+	}
+	
     public static String[] Ports() {
     	return SerialPortList.getPortNames();
     }
@@ -177,6 +181,8 @@ public class GrblStream implements GrblStreamInterface
 									String output = new String(buffer, 0, len);
 									len = 0;
 									System.out.println("GrblReader Received: "+ output);
+									
+									boolean print = true;
 									if (output.equals("ok")) {
 									} else if (output.contains("MPos:[")) {
 										String mpos = output.substring(output.indexOf("MPos:[") + 6);
@@ -189,6 +195,7 @@ public class GrblStream implements GrblStreamInterface
 										getToolPosition().x = Float.parseFloat(s2[0]);
 										getToolPosition().y = Float.parseFloat(s2[1]);
 										getToolPosition().z = Float.parseFloat(s2[2]);
+										print = false;
 									} else if (output.startsWith("<")) {
 										String mpos = output.substring(output.indexOf("MPos:") + 5);
 										String[] s = mpos.split(",");
@@ -200,6 +207,7 @@ public class GrblStream implements GrblStreamInterface
 										getToolPosition().x = Float.parseFloat(s2[0]);
 										getToolPosition().y = Float.parseFloat(s2[1]);
 										getToolPosition().z = Float.parseFloat(s2[2]);
+										print = false;
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
 									} else if (output.startsWith("$")) {
@@ -213,9 +221,12 @@ public class GrblStream implements GrblStreamInterface
 										System.out.println("Unlocked!");
 									} else {
 										System.out.println("GrblReader Error: "+ output);
-										System.exit(2);
-										return;
+										//System.exit(2);
+										//return;
 									}
+
+									if(listener != null && print)
+										listener.received(output);
 								}
 								if (exit)
 									return;
@@ -374,7 +385,7 @@ public class GrblStream implements GrblStreamInterface
             	
             	while(!exit) {
             		send( "?".getBytes());
-            		Thread.sleep(1000/10, 0);
+            		Thread.sleep(1000/8, 0);
             	}
             }catch (InterruptedException e) {
 				e.printStackTrace();

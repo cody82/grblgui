@@ -25,4 +25,6 @@ public interface GrblStreamInterface {
 	Vector3 getMachinePosition();
 
 	int getCurrentLine();
+	
+	void setListener(GrblStreamListener listener);
 }

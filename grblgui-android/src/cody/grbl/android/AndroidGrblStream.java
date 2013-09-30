@@ -11,10 +11,12 @@ import cody.gcode.GCodeCommand;
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeLine;
 import cody.grbl.GrblStreamInterface;
+import cody.grbl.GrblStreamListener;
 
 public class AndroidGrblStream implements GrblStreamInterface {
 	UsbSerialDriver driver;
 	FileHandle logfile;
+	GrblStreamListener listener;
 	
 	public AndroidGrblStream(UsbSerialDriver _driver) throws Exception {
 		driver = _driver;
@@ -22,6 +24,10 @@ public class AndroidGrblStream implements GrblStreamInterface {
 		log("serial constructor");
         connect("");
         createReader();
+	}
+
+	public void setListener(GrblStreamListener listener) {
+		this.listener = listener;
 	}
 	
 	void log(String s) {
@@ -179,6 +185,9 @@ public class AndroidGrblStream implements GrblStreamInterface {
 									String output = new String(buffer, 0, len);
 									len = 0;
 									log("GrblReader Received: "+ output);
+									if(listener != null)
+										listener.received(output);
+									
 									if (output.equals("ok")) {
 									} else if (output.contains("MPos:[")) {
 										String mpos = output.substring(output.indexOf("MPos:[") + 6);

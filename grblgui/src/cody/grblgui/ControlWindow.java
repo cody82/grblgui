@@ -7,6 +7,7 @@ import cody.gcode.GCodeFile;
 import cody.gcode.GCodeParser;
 import cody.grbl.GrblStreamFactory;
 import cody.grbl.GrblStreamInterface;
+import cody.grbl.GrblStreamListener;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -40,10 +41,14 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			if(grbl == null)
+            			if(grbl == null) {
+            				mainscreen.showMessage("Open a serial port first.", "Error");
             				return true;
-            			if(file == null)
+            			}
+            			if(file == null) {
+            				mainscreen.showMessage("Load a G-Code file first.", "Error");
             				return true;
+            			}
             			if(grbl.isStreaming()) {
             				grbl.stopStream();
             				stream_button.setText("Start streaming");
@@ -190,6 +195,12 @@ public class ControlWindow extends Window{
             			if(grbl == null) {
             		try {
 						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelection());
+						grbl.setListener(new GrblStreamListener(){
+							@Override
+							public void received(String line) {
+								mainscreen.console.queueLine(line);
+							}
+						});
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
