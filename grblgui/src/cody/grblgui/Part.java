@@ -13,18 +13,11 @@ import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
-import com.badlogic.gdx.graphics.g3d.loaders.obj.ObjLoader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 
 public class Part {
-	public Part(String obj_file, String texture_file) throws FileNotFoundException {
-		mesh = ObjLoader.loadObj(new FileInputStream(obj_file), true, true);
-		texture = new Texture(Gdx.files.internal("data/wood.jpg"));
-		texture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
-		texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-	}
 	public Part() {
 	}
 	
