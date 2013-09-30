@@ -42,6 +42,8 @@ public class ControlWindow extends Window{
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
             			if(grbl == null)
             				return true;
+            			if(file == null)
+            				return true;
             			if(grbl.isStreaming()) {
             				grbl.stopStream();
             				stream_button.setText("Start streaming");

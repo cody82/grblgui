@@ -202,6 +202,11 @@ public class GrblStream implements GrblStreamInterface
 										getToolPosition().z = Float.parseFloat(s2[2]);
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
+									} else if (output.startsWith("$")) {
+									} else if (output.startsWith("~")) {
+									} else if (output.startsWith("!")) {
+									} else if (output.startsWith("?")) {
+									} else if (output.startsWith("ctrl-x")) {
 									} else if (output.startsWith("['$H'|'$X' to unlock]")) {
 										//send("$X\n".getBytes());
 									} else if (output.startsWith("[Caution: Unlocked]")) {

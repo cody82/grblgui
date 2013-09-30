@@ -13,7 +13,9 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
@@ -36,7 +38,8 @@ public class MainScreen implements Screen {
 	public String filename;
 	String device;
 
-
+	ConsoleWindow console;
+	
     Skin skin;
     Stage ui;
 	
@@ -72,6 +75,7 @@ public class MainScreen implements Screen {
 	}
 
 	boolean ztest = true;
+	int lastline = -1;
 	
 	@Override
 	public void render(float arg0) {
@@ -126,12 +130,14 @@ public class MainScreen implements Screen {
 			spriteBatch.begin();
 			int currentline = toolpath.currentLine = grbl.isStreaming() ? grbl.getCurrentLine() : -1;
 			
-			int maxlines = Gdx.graphics.getHeight() / 20 - 1;
-			for(int i = currentline;i > 0 && i > currentline - maxlines;--i) {
-				if(i<file.gcode.size())
-					font.draw(spriteBatch, file.gcode.get(i).getContent(), 20, 20 + (currentline - i) * 20);
-			}
-		
+			
+			if(lastline < 0)
+				lastline = 0;
+				for(int i = lastline; i <= currentline; ++i) {
+					console.writeLine(file.gcode.get(i).getContent());
+				}
+				lastline = currentline + 1;
+				
 			font.draw(spriteBatch, "position: X" + grbl.getToolPosition().x + "Y" + grbl.getToolPosition().y + "Z" +grbl.getToolPosition().z, Gdx.graphics.getWidth() - 220, 100);
 			font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
 			font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
@@ -141,13 +147,16 @@ public class MainScreen implements Screen {
 			}
 			spriteBatch.end();
 		}
-		
+		else
+			lastline = -1;
 		
 		if (Gdx.input.isButtonPressed(1)) {
-			int x = Gdx.input.getX();
-			int y = Gdx.input.getY();
-			Vector3 pos = workspace.intersect(camera.getPickRay(x, y));
-			tool.position = pos;
+			if(!isWindowUnderCursor()) {
+				int x = Gdx.input.getX();
+				int y = Gdx.input.getY();
+				Vector3 pos = workspace.intersect(camera.getPickRay(x, y));
+				tool.position = pos;
+			}
 		}
 
 
@@ -175,6 +184,9 @@ public class MainScreen implements Screen {
 	}
 
 	void cam_rotate() {
+		if(isWindowUnderCursor())
+			return;
+		
 		Vector3 right = camera.direction.cpy();
 		right.crs(camera.up);
 		
@@ -192,7 +204,18 @@ public class MainScreen implements Screen {
 
 	}
 	
+	boolean isWindowUnderCursor() {
+		int x = Gdx.input.getX();
+		int y = Gdx.input.getY();
+		Vector2 coord = ui.screenToStageCoordinates(new Vector2(x,y));
+		Actor a = ui.hit(coord.x, coord.y, false);
+		return a != null;
+	}
+	
 	void cam_translate() {
+		if(isWindowUnderCursor())
+			return;
+		
 		Vector3 right = camera.direction.cpy();
 		right.crs(camera.up);
 		Vector3 tmp = right.cpy();
@@ -276,6 +299,7 @@ public class MainScreen implements Screen {
         
         ui.addActor(new JogWindow(skin, this));
         ui.addActor(new ViewWindow(skin, this));
+        ui.addActor(console = new ConsoleWindow(skin, this));
         //ui.addActor(new SettingsWindow(skin));
         ui.addActor(new ControlWindow(skin, grbl, this));
 	    
