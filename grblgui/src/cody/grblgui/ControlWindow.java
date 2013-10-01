@@ -164,7 +164,10 @@ public class ControlWindow extends Window{
 
             				mainscreen.part = new Part(sim);
             				mainscreen.draw_part = true;*/
-
+            			if(mainscreen.toolpath == null) {
+            				mainscreen.showMessage("Load a G-Code file first.", "Error");
+            				return true;
+            			}
         				mainscreen.toolsize = Float.parseFloat(tool_radius.getText());
 
         				mainscreen.part = SimulationConverter.convert(mainscreen.toolpath, new ToolInfo(mainscreen.toolsize));
