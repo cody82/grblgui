@@ -35,6 +35,15 @@ public class Workspace {
 		mesh.setIndices(indices);
 	}
 	
+	public void setSize(float w, float h) {
+		float[] verts = new float[]{
+				-w, -h, 0, new Color(1,1,1,1).toFloatBits(),
+				-w, h, 0, new Color(1,1,1,1).toFloatBits(),
+				w, h, 0, new Color(1,1,1,1).toFloatBits(),
+				w, -h, 0, new Color(1,1,1,1).toFloatBits(),
+		};
+		mesh.setVertices(verts);
+	}
 	public void draw(Matrix4 matrix) {
 		Util.render(mesh, GL10.GL_LINE_STRIP, matrix);
 	}
