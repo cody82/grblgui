@@ -12,6 +12,29 @@ public class GCodeLine {
 	public String getContent() {
 		return content;
 	}
+	
+	public String getContent(int speed) {
+		if(speed == 100)
+			return getContent();
+		
+		GCodeCommand cmd = getF();
+		if(cmd == null)
+			return getContent();
+		
+		String ret = "";
+		
+		for(GCodeCommand c : commands) {
+			if(c.cmd == 'F'){
+				ret += Character.toString(c.cmd) + Integer.toString(speed * (int)c.arg / 100);
+			}
+			else {
+				ret += Character.toString(c.cmd) + Integer.toString((int)c.arg);
+			}
+		}
+		
+		return ret;
+	}
+	
 	public void addCommand(char cmd, float arg) {
 		commands.add(new GCodeCommand(cmd, arg));
 	}
@@ -61,4 +84,5 @@ public class GCodeLine {
 	public int line;
 	public ArrayList<GCodeCommand> commands = new ArrayList<GCodeCommand>();
 	public float time;
+	public float feedrate;
 }

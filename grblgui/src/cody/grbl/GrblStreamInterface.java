@@ -27,4 +27,7 @@ public interface GrblStreamInterface {
 	int getCurrentLine();
 	
 	void setListener(GrblStreamListener listener);
+	
+	void setSpeed(int percent);
+	int getSpeed();
 }

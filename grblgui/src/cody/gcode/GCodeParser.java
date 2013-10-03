@@ -11,6 +11,9 @@ public class GCodeParser {
 		String s = readFileAsString(filename);
 		return parse(s);
 	}
+	
+	static float feed;
+	
 	public static GCodeFile parse(String gcode) {
 		gcode = gcode.replace(" ", "");
 		
@@ -19,19 +22,22 @@ public class GCodeParser {
 		
 		GCodeFile file = new GCodeFile();
 		
+		feed = 0;
+		
 		for(String line : lines) {
 			char cmd = 0;
 			String arg = "";
 			j++;
 			
 			GCodeLine gcodeline = new GCodeLine(j, line);
+			gcodeline.feedrate = feed;
 			file.gcode.add(gcodeline);
 			
 			for(int i=0;i<line.length();++i) {
 				char c = line.charAt(i);
 				if(c >= 'A' && c <= 'Z') {
 					if(cmd != 0) {
-						gcodeline.addCommand(cmd, arg.length() > 0 ? Float.parseFloat(arg) : 0);
+						addCommand(gcodeline, cmd, arg.length() > 0 ? Float.parseFloat(arg) : 0);
 					}
 					cmd = c;
 					arg = "";
@@ -41,10 +47,17 @@ public class GCodeParser {
 				}
 			}
 			if(cmd != 0)
-				gcodeline.addCommand(cmd, arg.length() > 0 ? Float.parseFloat(arg) : 0);
+				addCommand(gcodeline, cmd, arg.length() > 0 ? Float.parseFloat(arg) : 0);
 			
 		}
 		return file;
+	}
+	
+	private static void addCommand(GCodeLine line, char cmd, float arg) {
+		line.addCommand(cmd, arg);
+		if(cmd == 'F') {
+			line.feedrate = feed = arg;
+		}
 	}
 	
 	private static String readFileAsString(String filePath) throws java.io.IOException{

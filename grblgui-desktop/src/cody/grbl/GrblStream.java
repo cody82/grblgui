@@ -279,16 +279,17 @@ public class GrblStream implements GrblStreamInterface
                 currentLine = 0;
                 int errors = 0;
             	lines:for(GCodeLine line : gcode.gcode) {
+            		String line_string = line.getContent(speed);
             		for(GCodeCommand cmd : line.commands) {
             			if(cmd.cmd == 'T' || cmd.cmd == 'M') {
-                    		System.out.println("GrblStream ignored line: " + line.getContent());
+                    		System.out.println("GrblStream ignored line: " + line_string);
             				currentLine++;
             				continue lines;
             			}
             		}
             		
-            		System.out.println("GrblStream Write: " + line.getContent());
-            		send( (line.getContent() + "\n").getBytes());
+            		System.out.println("GrblStream Write: " + line_string);
+            		send( (line_string + "\n").getBytes());
                     currentLine ++;
             		
                     boolean ok = false;
@@ -429,5 +430,23 @@ public class GrblStream implements GrblStreamInterface
 	public void setMachinePosition(Vector3 machinePosition) {
 		this.machinePosition = machinePosition;
 	}
+	@Override
+	public void setSpeed(int percent) {
+		speed = percent;
+		if(gcode == null)
+			return;
+		GCodeLine line = gcode.gcode.get(streamer.currentLine);
+		if(line == null)
+			return;
+		int current_feedrate = (int)line.feedrate;
+		int new_feedrate = current_feedrate * percent / 100;
+		send(("F" + Integer.toString(new_feedrate)+"\n").getBytes());
+		
+	}
 
+	int speed = 100;
+	@Override
+	public int getSpeed() {
+		return speed;
+	}
 }

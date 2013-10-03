@@ -27,11 +27,12 @@ public class ControlWindow extends Window{
 	GCodeFile file;
 	MainScreen mainscreen;
 	TextField tool_radius;
+	TextField speed;
 	
 	public ControlWindow(Skin skin, GrblStreamInterface _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
 		grbl = _grbl;
-		setBounds(600, 0, 250, 350);
+		setBounds(600, 0, 250, 400);
 		setColor(0.5f, 0.5f, 0.5f, 0.8f);
 		String dir_or_file = _mainscreen.filename;
 		mainscreen = _mainscreen;
@@ -229,6 +230,22 @@ public class ControlWindow extends Window{
         				grbl.send(new byte[]{'$','H','\n'});
     				return true;
             	}});
+
+        
+        speed = new TextField("100",skin);
+        final TextButton speed_button = new TextButton("Set speed [%]", skin);
+        speed_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null)
+            				return true;
+            			int speedfactor = Integer.parseInt(speed.getText());
+        				grbl.setSpeed(speedfactor);
+    				return true;
+            	}});
+
+        
         
         add(port_select).fill().expand();
         row();
@@ -247,6 +264,11 @@ public class ControlWindow extends Window{
         add(preview_button).fill().expand();
         row();
         add(stream_button).fill().expand();
+        row();
+        Table t2 = new Table();
+        t2.add(speed_button).fill().expand();
+        t2.add(speed).width(50);
+        add(t2).fill().expand();
         row();
         add(hold_button).fill().expand();
         row();
