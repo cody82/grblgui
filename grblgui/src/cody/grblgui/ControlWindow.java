@@ -238,8 +238,10 @@ public class ControlWindow extends Window{
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			if(grbl == null)
+            			if(grbl == null) {
+            				mainscreen.showMessage("Open a serial port first.", "Error");
             				return true;
+            			}
             			int speedfactor = Integer.parseInt(speed.getText());
         				grbl.setSpeed(speedfactor);
     				return true;

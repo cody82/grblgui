@@ -80,6 +80,8 @@ public class MainScreen implements Screen {
 	boolean ztest = true;
 	int lastline = -1;
 	
+	public boolean camera_follow = false;
+	
 	@Override
 	public void render(float arg0) {
 		Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -104,7 +106,8 @@ public class MainScreen implements Screen {
 			current.position = result;
 		}
 		//camera.rotate(1, 0, 1, 1);
-		//camera.lookAt(current.position.x, current.position.y, current.position.z);
+		if(camera_follow)
+			camera.lookAt(current.position.x, current.position.y, current.position.z);
 		camera.update(true);
 		
 

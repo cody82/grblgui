@@ -12,6 +12,7 @@ public class ViewWindow extends Window {
 	MainScreen mainscreen;
 	CheckBox draw_part;
 	CheckBox show_console;
+	CheckBox camera_follow;
 	
 	public ViewWindow(Skin skin, MainScreen _mainscreen) {
 		super("View", skin);
@@ -56,6 +57,17 @@ public class ViewWindow extends Window {
 		row();
 		
 		add(new Label("Camera", skin)).fill().expand();
+		row();
+
+		camera_follow = new CheckBox("Follow", skin);
+		camera_follow.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                		mainscreen.camera_follow = !camera_follow.isChecked();
+    				return true;
+            	}});
+		add(camera_follow).fill().expand();
 	}
 
 }
