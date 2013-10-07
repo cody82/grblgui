@@ -69,6 +69,10 @@ public class GrblStream implements GrblStreamInterface
 			System.exit(13);
 		}
     }
+    
+    public void reset() {
+    	send(new byte[]{24});
+    }
     public boolean isHold() {
     	return is_paused;
     }
