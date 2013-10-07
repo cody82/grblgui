@@ -30,4 +30,5 @@ public interface GrblStreamInterface {
 	
 	void setSpeed(int percent);
 	int getSpeed();
+	String getStatus();
 }

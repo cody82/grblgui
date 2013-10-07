@@ -14,12 +14,14 @@ public class GrblStream implements GrblStreamInterface
 {
     public GrblStream(String portName, GCodeFile file) throws Exception
     {
+    	setStatus("Idle");
     	gcode = file;
         connect(portName);
         stream(file);
     }
     public GrblStream(String portName) throws Exception
     {
+    	setStatus("Idle");
         connect(portName);
         createReader();
     }
@@ -43,7 +45,10 @@ public class GrblStream implements GrblStreamInterface
     Thread updater_thread;
     Thread streamer_thread;
     Thread reader_thread;
-    
+    private String status;
+    private synchronized void setStatus(String status) {
+    	this.status = status;
+    }
     public int getCurrentLine() {
     	if(streamer != null) {
     		return streamer.currentLine;
@@ -207,6 +212,9 @@ public class GrblStream implements GrblStreamInterface
 										getToolPosition().x = Float.parseFloat(s2[0]);
 										getToolPosition().y = Float.parseFloat(s2[1]);
 										getToolPosition().z = Float.parseFloat(s2[2]);
+										
+										setStatus(output.substring(1, output.indexOf(',')));
+										
 										print = false;
 									} else if (output.startsWith("Grbl ")) {
 									} else if (output.startsWith("'$' ")) {
@@ -328,6 +336,7 @@ public class GrblStream implements GrblStreamInterface
 									getToolPosition().x = Float.parseFloat(s2[0]);
 									getToolPosition().y = Float.parseFloat(s2[1]);
 									getToolPosition().z = Float.parseFloat(s2[2]);
+									setStatus(output.substring(1, output.indexOf(',')));
 								} else {
 	                        		System.out.println("GrblStream Error: " + output);
 	                        		errors++;
@@ -339,10 +348,16 @@ public class GrblStream implements GrblStreamInterface
 	                        			System.out.println("GrblStream Error ignored.");
 	                        	}
                         	}
+                        	if(exit)
+                        		break;
                         }
                         else
                         	buffer[len++] = (byte) data;
                     }
+            		if(exit) {
+                		System.out.println("GrblStream thread exit.");
+            			return;
+            		}
                     try {
 						Thread.sleep(20);
 					} catch (InterruptedException e) {
@@ -355,11 +370,10 @@ public class GrblStream implements GrblStreamInterface
                 		System.exit(6);
                 		return;
                 	}
-            		if(exit) {
-                		System.out.println("GrblStream thread exit.");
-            			return;
-            		}
             	}
+                System.out.println("Stream complete!");
+                createReader();
+                streamer = null;
             }
             catch (  NumberFormatException | SerialPortException e )
             {
@@ -382,8 +396,6 @@ public class GrblStream implements GrblStreamInterface
         {
             try
             {
-        		Thread.sleep(1000, 0);
-            	
             	while(!exit) {
             		send( "?".getBytes());
             		Thread.sleep(1000/8, 0);
@@ -448,5 +460,9 @@ public class GrblStream implements GrblStreamInterface
 	@Override
 	public int getSpeed() {
 		return speed;
+	}
+	@Override
+	public synchronized String getStatus() {
+		return status;
 	}
 }

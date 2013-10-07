@@ -28,6 +28,30 @@ public class ControlWindow extends Window{
 	MainScreen mainscreen;
 	TextField tool_radius;
 	TextField speed;
+	TextButton stream_button;
+	TextButton hold_button;
+	
+	public void setStreamButton(boolean start) {
+		if(start) {
+			stream_button.setText("Start streaming");
+			stream_button.setColor(1, 0, 0, 1);
+		}
+		else {
+			stream_button.setText("Stop streaming");
+			stream_button.setColor(0, 1, 0, 1);
+		}
+	}
+
+	public void setHoldButton(boolean hold) {
+		if(hold) {
+			hold_button.setText("Enable feed hold");
+			hold_button.setColor(0, 1, 0, 1);
+		}
+		else {
+			hold_button.setText("Disable feed hold");
+			hold_button.setColor(1, 0, 0, 1);
+		}
+	}
 	
 	public ControlWindow(Skin skin, GrblStreamInterface _grbl, MainScreen _mainscreen) {
 		super("Control", skin);
@@ -37,7 +61,7 @@ public class ControlWindow extends Window{
 		String dir_or_file = _mainscreen.filename;
 		mainscreen = _mainscreen;
 		
-        final TextButton stream_button = new TextButton("Start streaming", skin);
+        stream_button = new TextButton("Start streaming", skin);
         stream_button.addListener(
             	new InputListener() {
             		@Override
@@ -50,22 +74,23 @@ public class ControlWindow extends Window{
             				mainscreen.showMessage("Load a G-Code file first.", "Error");
             				return true;
             			}
+            			if(grbl.isHold()) {
+            				grbl.pause();
+            			}
             			if(grbl.isStreaming()) {
             				grbl.stopStream();
-            				stream_button.setText("Start streaming");
-            				stream_button.setColor(1, 0, 0, 1);
+            				setStreamButton(true);
             			}
             			else {
             				grbl.stream(file);
-            				stream_button.setText("Stop streaming");
-            				stream_button.setColor(0, 1, 0, 1);
+            				setStreamButton(false);
             			}
     				return true;
             	}});
 
 		stream_button.setColor(1, 0, 0, 1);
         
-        final TextButton hold_button = new TextButton("Enable feed hold", skin);
+        hold_button = new TextButton("Enable feed hold", skin);
         
         hold_button.addListener(
             	new InputListener() {
@@ -75,12 +100,10 @@ public class ControlWindow extends Window{
             				return true;
             			grbl.pause();
             			if(grbl.isHold()) {
-            				hold_button.setText("Disable feed hold");
-            				hold_button.setColor(1, 0, 0, 1);
+            				setHoldButton(false);
             			}
             			else {
-            				hold_button.setText("Enable feed hold");
-            				hold_button.setColor(0, 1, 0, 1);
+            				setHoldButton(true);
             			}
     				return true;
             	}});

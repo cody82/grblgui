@@ -42,6 +42,7 @@ public class MainScreen implements Screen {
 	String device;
 
 	ConsoleWindow console;
+	ControlWindow control;
 	
     Skin skin;
     Stage ui;
@@ -130,23 +131,31 @@ public class MainScreen implements Screen {
 
 		orthocam.update();
 		
-		if(file != null && grbl != null) {
+		if(grbl != null) {
 			spriteBatch.setProjectionMatrix(orthocam.projection);
 			spriteBatch.setTransformMatrix(orthocam.view);
 			spriteBatch.begin();
-			int currentline = toolpath.currentLine = grbl.isStreaming() ? grbl.getCurrentLine() : -1;
 			
-			
-			if(lastline < 0)
-				lastline = 0;
-			for(int i = lastline; i <= currentline; ++i) {
-				console.writeLine(file.gcode.get(i).getContent(grbl.getSpeed()));
-			}
-			lastline = currentline + 1;
+			if(file != null) {
+				int currentline = toolpath.currentLine = grbl.isStreaming() ? grbl.getCurrentLine() : -1;
 				
-			font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
+				
+				if(lastline < 0)
+					lastline = 0;
+				for(int i = lastline; i <= currentline && i < file.gcode.size(); ++i) {
+					console.writeLine(file.gcode.get(i).getContent(grbl.getSpeed()));
+				}
+				lastline = currentline + 1;
+			}
+			
+			//font.draw(spriteBatch, "status: " + (grbl.isStreaming() ? "streaming " : "") + (grbl.isHold() ? "hold" : "running"), Gdx.graphics.getWidth() - 220, 80);
+			String status = grbl.getStatus();
+			font.draw(spriteBatch, "status: " + status, Gdx.graphics.getWidth() - 220, 80);
+			control.setStreamButton(!grbl.isStreaming());
+			control.setHoldButton(!grbl.isHold());
+			
 			font.draw(spriteBatch, "speed: " + Float.toString(speed)+"mm/min", Gdx.graphics.getWidth() - 220, 40);
-			if(grbl.isStreaming()) {
+			if(toolpath != null && grbl.isStreaming()) {
 				font.draw(spriteBatch, "eta:" + Float.toString(toolpath.getEta())+"min", Gdx.graphics.getWidth() - 220, 60);
 				font.draw(spriteBatch, "duration: " + Float.toString(toolpath.duration)+"min", Gdx.graphics.getWidth() - 220, 20);
 			}
@@ -320,7 +329,7 @@ public class MainScreen implements Screen {
         ui.addActor(new JogWindow(skin, this));
         ui.addActor(new ViewWindow(skin, this));
         //ui.addActor(new SettingsWindow(skin));
-        ui.addActor(new ControlWindow(skin, grbl, this));
+        ui.addActor(control = new ControlWindow(skin, grbl, this));
 	    
 		Gdx.input.setInputProcessor(ui);
 	}
