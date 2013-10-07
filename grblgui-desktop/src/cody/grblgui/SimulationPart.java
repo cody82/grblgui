@@ -54,13 +54,25 @@ public class SimulationPart extends Part {
 				verts[index++] = py;
 				verts[index++] = pz;
 				verts[index++] = new Color(0,0,c1,1).toFloatBits();
+
+				if(x == 0) {
+					for(int i=0;i<4;++i) {
+						verts[index] = verts[index-4];
+						index++;
+					}
+				}
 				verts[index++] = px2;
 				verts[index++] = py2;
 				verts[index++] = pz2;
 				verts[index++] = new Color(0,0,c2,1).toFloatBits();
+				
+				if(x == sim.count_x() - 1) {
+					for(int i=0;i<4;++i) {
+						verts[index] = verts[index-4];
+						index++;
+					}
+				}
 			}
-			for(int i=0;i<8;++i)
-				verts[index++] = verts[index-8];
 		}
 
 		System.out.print(verts.length);
