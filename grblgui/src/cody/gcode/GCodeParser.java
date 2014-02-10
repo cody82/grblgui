@@ -25,6 +25,9 @@ public class GCodeParser {
 		feed = 0;
 		
 		for(String line : lines) {
+			if(line.startsWith("("))
+				continue;
+			
 			char cmd = 0;
 			String arg = "";
 			j++;
