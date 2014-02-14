@@ -432,4 +432,21 @@ public class AndroidGrblStream implements GrblStreamInterface {
 		this.machinePosition = machinePosition;
 	}
 
+	int speed;
+	@Override
+	public void setSpeed(int percent) {
+		speed = percent;
+	}
+
+	@Override
+	public int getSpeed() {
+		return speed;
+	}
+
+	@Override
+	public String getStatus() {
+		// TODO Auto-generated method stub
+		return "";
+	}
+
 }
