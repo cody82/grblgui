@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class Toolpath {
@@ -33,7 +34,7 @@ public class Toolpath {
 		for(GCodeLine l : f.gcode) {
 			float new_feed = current_feed;
 			boolean new_seek = seek;
-			if(l.hasG()) {
+			if(l.hasG01()) {
 				new_seek = l.getG().arg < 0.5f;
 				if(l.isGBeforePosition()) {
 					seek = new_seek;
@@ -46,7 +47,7 @@ public class Toolpath {
 				}
 			}
 			
-			if(l.hasPosition()) {
+			if(l.hasPosition() && l.hasG01()) {
 				Vector3 old_position = current.cpy();
 				GCodeCommand cmd = l.getX();
 				if(cmd != null)
@@ -65,6 +66,9 @@ public class Toolpath {
 				tp.line.add(l.line);
 				tp.path.add(current.cpy());
 			}
+			else if(l.hasG2() || l.hasG3()) {
+				makeArc(tp, l, current, seek ? seek_default_speed : current_feed);
+			}
 			current_feed = new_feed;
 			seek = new_seek;
 		}
@@ -75,6 +79,71 @@ public class Toolpath {
 		return tp;
 	}
 	
+	static void makeArc(Toolpath path, GCodeLine line, Vector3 current, float speed) {
+		Vector3 old_position = current.cpy();
+		GCodeCommand cmd = line.getX();
+		boolean clockwise = line.hasG2();
+		if(cmd != null)
+			current.x = cmd.arg;
+		cmd = line.getY();
+		if(cmd != null)
+			current.y = cmd.arg;
+		cmd = line.getZ();
+		if(cmd != null)
+			current.z = cmd.arg;
+		
+		float i = 0,j = 0;
+		cmd = line.getI();
+		if(cmd != null)
+			i = cmd.arg;
+		cmd = line.getJ();
+		if(cmd != null)
+			j = cmd.arg;
+		
+		Vector3 center = old_position.cpy().add(i, j, 0);
+		Vector2 center2d = new Vector2(center.x, center.y);
+		float radius = center.dst(old_position);
+		Vector2 start2d = new Vector2(old_position.x, old_position.y);
+		Vector2 v = start2d.sub(center2d);
+		float angle1 = v.angle();
+		float angle2 = new Vector2(current.x,current.y).sub(center2d).angle();
+		float stepsize = 1;
+		if(clockwise) {
+			float d;
+			if(angle2 > angle1)
+				d = 360 - (angle2 - angle1);
+			else
+				d = angle1 - angle2;
+			for(float b=0;b<d;b+=stepsize) {
+				angle1 -= stepsize;
+				v.setAngle(angle1);
+				float dist = 1;
+				float time = dist / speed;
+				path.duration += time;
+				path.time.add(path.duration);
+				path.line.add(line.line);
+				Vector2 v3 = v.cpy().add(center2d);
+				path.path.add(new Vector3(v3.x,v3.y,current.z));
+			}
+		} else {
+			float d;
+			if(angle2 < angle1)
+				d = 360 - (angle1 - angle2);
+			else
+				d = angle2 - angle1;
+			for(float b=0;b<d;b+=stepsize) {
+				angle1 += stepsize;
+				v.setAngle(angle1);
+				float dist = 1;
+				float time = dist / speed;
+				path.duration += time;
+				path.time.add(path.duration);
+				path.line.add(line.line);
+				Vector2 v3 = v.cpy().add(center2d);
+				path.path.add(new Vector3(v3.x,v3.y,current.z));
+			}
+		}
+	}
 	public float getEta() {
 		if(currentLine<time.size())
 			return time.get(currentLine);

@@ -65,6 +65,12 @@ public class GCodeLine {
 	public GCodeCommand getG() {
 		return findCommand('G');
 	}
+	public GCodeCommand getI() {
+		return findCommand('I');
+	}
+	public GCodeCommand getJ() {
+		return findCommand('J');
+	}
 	
 	public boolean isFeedBeforePosition() {
 		return commands.indexOf(getF()) < commands.indexOf(getX());
@@ -80,6 +86,34 @@ public class GCodeLine {
 	}
 	public boolean hasG() {
 		return getG() != null;
+	}
+	public boolean hasG01() {
+		GCodeCommand g = getG();
+		if(g == null)
+			return false;
+		
+		if(((int)g.arg) == 0 || ((int)g.arg) == 1)
+			return true;
+		else
+			return false;
+	}
+	public boolean hasG2() {
+		GCodeCommand g = getG();
+		if(g == null)
+			return false;
+		if(((int)(g.arg+0.5f)) == 2)
+			return true;
+		else
+			return false;
+	}
+	public boolean hasG3() {
+		GCodeCommand g = getG();
+		if(g == null)
+			return false;
+		if(((int)(g.arg+0.5f)) == 3)
+			return true;
+		else
+			return false;
 	}
 	public int line;
 	public ArrayList<GCodeCommand> commands = new ArrayList<GCodeCommand>();
