@@ -92,7 +92,7 @@ public class GCodeLine {
 		if(g == null)
 			return false;
 		
-		if(((int)g.arg) == 0 || ((int)g.arg) == 1)
+		if(((int)g.arg+0.5f) == 0 || ((int)g.arg+0.5f) == 1)
 			return true;
 		else
 			return false;

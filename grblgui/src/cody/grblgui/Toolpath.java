@@ -47,7 +47,9 @@ public class Toolpath {
 				}
 			}
 			
-			if(l.hasPosition() && l.hasG01()) {
+			if(l.hasG2() || l.hasG3()) {
+					makeArc(tp, l, current, seek ? seek_default_speed : current_feed);
+			} else if(l.hasPosition()) {
 				Vector3 old_position = current.cpy();
 				GCodeCommand cmd = l.getX();
 				if(cmd != null)
@@ -65,9 +67,6 @@ public class Toolpath {
 				tp.time.add(tp.duration);
 				tp.line.add(l.line);
 				tp.path.add(current.cpy());
-			}
-			else if(l.hasG2() || l.hasG3()) {
-				makeArc(tp, l, current, seek ? seek_default_speed : current_feed);
 			}
 			current_feed = new_feed;
 			seek = new_seek;
