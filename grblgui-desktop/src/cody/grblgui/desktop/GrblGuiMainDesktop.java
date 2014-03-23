@@ -38,6 +38,7 @@ public class GrblGuiMainDesktop {
 		
 		Main main = new Main(dir, port);
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		config.vSyncEnabled = true;
 		config.samples = 2;
 		config.width = 1280;
 		config.height = 720;
