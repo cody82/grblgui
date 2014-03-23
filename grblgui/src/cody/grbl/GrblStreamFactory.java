@@ -5,11 +5,11 @@ import cody.gcode.GCodeFile;
 public abstract class GrblStreamFactory {
 	public static GrblStreamFactory instance;
 	
-	public static GrblStreamInterface create(String port, GCodeFile file) {
-		return instance.createImpl(port, file);
+	public static GrblStreamInterface create(String port, int baudrate, GCodeFile file) {
+		return instance.createImpl(port, baudrate, file);
 	}
-	public static GrblStreamInterface create(String port) {
-		return instance.createImpl(port);
+	public static GrblStreamInterface create(String port, int baudrate) {
+		return instance.createImpl(port, baudrate);
 	}
 
 	public static String[] ports() {
@@ -19,11 +19,11 @@ public abstract class GrblStreamFactory {
 			return new String[0];
 	}
 	
-	protected GrblStreamInterface createImpl(String port, GCodeFile file) {
+	protected GrblStreamInterface createImpl(String port, int baudrate, GCodeFile file) {
 		return null;
 	}
 	
-	protected GrblStreamInterface createImpl(String port) {
+	protected GrblStreamInterface createImpl(String port, int baudrate) {
 		return null;
 	}
 	

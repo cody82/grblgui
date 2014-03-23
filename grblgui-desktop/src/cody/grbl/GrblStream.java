@@ -12,17 +12,17 @@ import com.badlogic.gdx.math.Vector3;
 
 public class GrblStream implements GrblStreamInterface
 {
-    public GrblStream(String portName, GCodeFile file) throws Exception
+    public GrblStream(String portName, int baudrate, GCodeFile file) throws Exception
     {
     	setStatus("Idle");
     	gcode = file;
-        connect(portName);
+        connect(portName, baudrate);
         stream(file);
     }
-    public GrblStream(String portName) throws Exception
+    public GrblStream(String portName, int baudrate) throws Exception
     {
     	setStatus("Idle");
-        connect(portName);
+        connect(portName, baudrate);
         createReader();
     }
 
@@ -146,12 +146,12 @@ public class GrblStream implements GrblStreamInterface
     		createReader();
     	}
     }
-    void connect ( String portName ) throws Exception
+    void connect ( String portName, int baudrate ) throws Exception
     {
     	serialPort = new SerialPort(portName);
     	if(!serialPort.openPort())
     		throw new Exception("cant open port");	
-    	if(!serialPort.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE))
+    	if(!serialPort.setParams(baudrate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE))
     		throw new Exception("cant set port params");
 
         updater_thread = new Thread(updater = new Updater(serialPort));

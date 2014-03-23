@@ -14,14 +14,14 @@ public class AndroidGrblStreamFactory extends GrblStreamFactory {
 		manager = _manager;
 	}
 	@Override
-	protected GrblStreamInterface createImpl(String port, GCodeFile file) {
-		GrblStreamInterface s = createImpl(port);
+	protected GrblStreamInterface createImpl(String port, int baudrate, GCodeFile file) {
+		GrblStreamInterface s = createImpl(port, baudrate);
 		s.stream(file);
 		return s;
 	}
 
 	@Override
-	protected GrblStreamInterface createImpl(String port) {
+	protected GrblStreamInterface createImpl(String port, int baudrate) {
 		// Find the first available driver.
 		UsbSerialDriver driver = UsbSerialProber.acquire(manager);
 		if(driver != null)

@@ -5,9 +5,9 @@ import cody.gcode.GCodeFile;
 
 public class GrblFactory extends GrblStreamFactory {
 	@Override
-	protected GrblStreamInterface createImpl(String port, GCodeFile file) {
+	protected GrblStreamInterface createImpl(String port, int baudrate, GCodeFile file) {
 		try {
-			return new GrblStream(port,file);
+			return new GrblStream(port, baudrate, file);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -17,9 +17,9 @@ public class GrblFactory extends GrblStreamFactory {
 	}
 
 	@Override
-	protected GrblStreamInterface createImpl(String port) {
+	protected GrblStreamInterface createImpl(String port, int baudrate) {
 		try {
-			return new GrblStream(port);
+			return new GrblStream(port, baudrate);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

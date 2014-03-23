@@ -214,6 +214,8 @@ public class ControlWindow extends Window{
         
         final SelectBox port_select = new SelectBox(GrblStreamFactory.ports(),skin);
 
+        final SelectBox baudrate = new SelectBox(new String[]{"19200", "115200"}, skin);
+        
         final TextButton port_button = new TextButton("Open port", skin);
         port_button.addListener(
             	new InputListener() {
@@ -221,7 +223,7 @@ public class ControlWindow extends Window{
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
             			if(grbl == null) {
             		try {
-						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelection());
+						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelection(), Integer.parseInt(baudrate.getSelection()));
 						grbl.setListener(new GrblStreamListener(){
 							@Override
 							public void received(String line) {
@@ -271,9 +273,13 @@ public class ControlWindow extends Window{
             	}});
 
         
-        
-        add(port_select).fill().expand();
-        row();
+
+		Table table3 = new Table();
+		table3.add(port_select).fill().expand();
+		table3.add(baudrate).fill().expand();
+		add(table3).expand().fill();
+		row();
+		
         add(port_button).fill().expand();
         row();
         
