@@ -22,7 +22,7 @@ public class GrblGuiAndroidActivity extends AndroidApplication {
 
 		GrblStreamFactory.instance = new AndroidGrblStreamFactory(manager);
 		
-		initialize(main = new Main(null, null), true);
+		initialize(main = new Main(null, null));
 	}
 	
 	@Override

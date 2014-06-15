@@ -1,7 +1,7 @@
 package cody.grblgui;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
@@ -37,7 +37,7 @@ public class Tool {
 	public void draw(Matrix4 matrix) {
 		Matrix4 m = matrix.cpy();
 		m.translate(position.x, position.y, position.z);
-		Util.render(mesh, GL10.GL_LINE_STRIP, m);
+		Util.render(mesh, GL20.GL_LINE_STRIP, m);
 	}
 	
 

@@ -3,6 +3,7 @@ package cody.grblgui;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -88,7 +89,7 @@ public class ConsoleWindow extends Window {
 	}
 	
 	@Override
-	public synchronized void draw(SpriteBatch batch, float parentAlpha) {
+	public synchronized void draw(Batch batch, float parentAlpha) {
 		if(update) {
 			String tmp = "";
 			for(String s : lines)

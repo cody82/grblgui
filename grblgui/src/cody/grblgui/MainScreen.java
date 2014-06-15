@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
 
@@ -103,7 +104,7 @@ public class MainScreen implements Screen {
 			Vector3 tooltargetpos = grbl.getToolPosition().cpy();
 			Vector3 d = tooltargetpos.sub(current.position);
 	
-			Vector3 result = current.position.add(d.mul(Math.min(t * 10f, 1f)));
+			Vector3 result = current.position.add(d.scl(Math.min(t * 10f, 1f)));
 			current.position = result;
 		}
 		//camera.rotate(1, 0, 1, 1);
@@ -208,12 +209,12 @@ public class MainScreen implements Screen {
 		up.crs(camera.direction);
 		
 		Vector3 point = camera.direction.cpy();
-		point.mul(camera.position.len());
+		point.scl(camera.position.len());
 		point.add(camera.position);
 		
 		
-		camera.translate(up.mul((float)Gdx.input.getDeltaY() * camera.position.len() * 0.01f));
-		camera.translate(right.mul(-(float)Gdx.input.getDeltaX() * camera.position.len() * 0.01f));
+		camera.translate(up.scl((float)Gdx.input.getDeltaY() * camera.position.len() * 0.01f));
+		camera.translate(right.scl(-(float)Gdx.input.getDeltaX() * camera.position.len() * 0.01f));
 		camera.lookAt(point.x, point.y, point.z);
 
 	}
@@ -233,19 +234,19 @@ public class MainScreen implements Screen {
 		Vector3 right = camera.direction.cpy();
 		right.crs(camera.up);
 		Vector3 tmp = right.cpy();
-		tmp.mul(-Gdx.input.getDeltaX());
+		tmp.scl(-Gdx.input.getDeltaX());
 		camera.translate(tmp);
 		
 		Vector3 up = right.cpy();
 		up.crs(camera.direction);
 		tmp = up.cpy();
-		tmp.mul(Gdx.input.getDeltaY());
+		tmp.scl(Gdx.input.getDeltaY());
 		camera.translate(tmp);
 	}
 
 	void cam_move(float f) {
 		Vector3 tmp = camera.direction.cpy();
-		tmp.mul(f);
+		tmp.scl(f);
 		camera.translate(tmp);
 	}
 	
@@ -258,7 +259,7 @@ public class MainScreen implements Screen {
 		orthocam.viewportWidth = width;
 		orthocam.position.x = width/2;
 		orthocam.position.y = height/2;
-        ui.setViewport(width, height, false);
+        //ui.setViewport(width, height, false);
 	}
 
 	@Override
@@ -300,14 +301,16 @@ public class MainScreen implements Screen {
 		
 
         skin = new Skin(Gdx.files.internal("data/uiskin.json"));
-        ui = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false){
+        ui = new Stage(){
         	@Override
         	public boolean scrolled(int amount) {
         		cam_move((float)amount * camera.position.len() * -0.1f);
 				return true;
         	}
         };
-
+        //ui.setViewport();
+        //Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 
+        
         ui.addActor(console = new ConsoleWindow(skin, this));
         
         if(device != null) {

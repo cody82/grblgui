@@ -65,8 +65,8 @@ class Simulation(size_x : Float, size_y : Float, size_z : Float, precision : Flo
 	      val segments = math.max(1,(d.len() / precision).toInt)
 	      for(j <- 0 to segments - 1) {
 	        var p = d.cpy()
-	        p.mul(j)
-	        p.div(segments)
+	        p.scl(j)
+	        p.scl(1.0f/segments)
 	        p.add(cur)
 	        mill(new Vector3(p.x,p.y,p.z), tool)
 	      }

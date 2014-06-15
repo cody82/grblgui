@@ -42,7 +42,7 @@ public class GrblGuiMainDesktop {
 		config.samples = 2;
 		config.width = 1280;
 		config.height = 720;
-		config.useGL20 = true;
+		//config.useGL20 = true;
 		config.title = "grbl gui";
 		new LwjglApplication(main, config);
 	}

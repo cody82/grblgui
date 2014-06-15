@@ -2,6 +2,7 @@ package cody.grblgui;
 
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -28,7 +29,7 @@ public class JogWindow extends Window {
 	TextButton zero;
 	
 	@Override
-	public void draw(SpriteBatch arg0, float arg1) {
+	public void draw(Batch arg0, float arg1) {
 		super.draw(arg0, arg1);
 		if(mainscreen.grbl == null)
 			return;

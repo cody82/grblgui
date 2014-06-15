@@ -146,14 +146,15 @@ public class ControlWindow extends Window{
     		filenames[i]=files[i].name();
     	}
         final FileHandle[] filesfinal = files;
-        final SelectBox file_select = new SelectBox(filenames, skin);
+        final SelectBox<String> file_select = new SelectBox<String>(skin);
+        file_select.setItems(filenames);
         final TextButton load_button = new TextButton("Load", skin);
 
         load_button.addListener(
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-            			FileHandle f = filesfinal[file_select.getSelectionIndex()];
+            			FileHandle f = filesfinal[file_select.getSelectedIndex()];
             			
             			
             			try {
@@ -212,10 +213,10 @@ public class ControlWindow extends Window{
     				return true;
             	}});
         
-        final SelectBox port_select = new SelectBox(GrblStreamFactory.ports(),skin);
-
-        final SelectBox baudrate = new SelectBox(new String[]{"19200", "115200"}, skin);
-        
+        final SelectBox<String> port_select = new SelectBox<String>(skin);
+        port_select.setItems(GrblStreamFactory.ports());
+        final SelectBox<String> baudrate = new SelectBox<String>(skin);
+        baudrate.setItems(new String[]{"19200", "115200"});
         final TextButton port_button = new TextButton("Open port", skin);
         port_button.addListener(
             	new InputListener() {
@@ -223,7 +224,7 @@ public class ControlWindow extends Window{
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
             			if(grbl == null) {
             		try {
-						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelection(), Integer.parseInt(baudrate.getSelection()));
+						mainscreen.grbl = grbl = GrblStreamFactory.create(port_select.getSelected(), Integer.parseInt(baudrate.getSelected()));
 						grbl.setListener(new GrblStreamListener(){
 							@Override
 							public void received(String line) {
