@@ -1,5 +1,5 @@
 ##Download
-https://github.com/cody82/grblgui/releases/download/v0.3.2/grblgui.zip
+https://github.com/cody82/grblgui/releases/download/v0.3.3/grblgui.zip
 
 ## Screenshots
 ![screenshot](https://github.com/cody82/grblgui/raw/master/grblgui.jpg)
