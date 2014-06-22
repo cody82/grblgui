@@ -315,7 +315,7 @@ public class MainScreen implements Screen {
         
         if(device != null) {
 			try {
-				grbl = GrblStreamFactory.create(device, 19200);
+				grbl = GrblStreamFactory.create(device, 9600);
 				grbl.setListener(new GrblStreamListener(){
 					@Override
 					public void received(String line) {
