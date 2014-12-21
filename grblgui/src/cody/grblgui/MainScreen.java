@@ -21,6 +21,9 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainScreen implements Screen {
@@ -259,9 +262,16 @@ public class MainScreen implements Screen {
 		orthocam.viewportWidth = width;
 		orthocam.position.x = width/2;
 		orthocam.position.y = height/2;
-        //ui.setViewport(width, height, false);
+        //ui.setViewport(new ScalingViewport(Scaling.none, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+		ui.getViewport().update(width, height, true);
+		//uivp.setScreenWidth(width);
+		//uivp.setScreenHeight(height);
+		//uivp.setWorldWidth(width);
+		//uivp.setWorldHeight(height);
 	}
 
+	ScreenViewport uivp;
+	
 	@Override
 	public void resume() {
 		
@@ -301,7 +311,8 @@ public class MainScreen implements Screen {
 		
 
         skin = new Skin(Gdx.files.internal("data/uiskin.json"));
-        ui = new Stage(){
+        uivp = new ScreenViewport();
+        ui = new Stage(uivp){
         	@Override
         	public boolean scrolled(int amount) {
         		cam_move((float)amount * camera.position.len() * -0.1f);
