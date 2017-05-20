@@ -482,6 +482,16 @@ public class GrblStream implements GrblStreamInterface
 		
 	}
 
+	@Override
+	public void jogCancel() {
+		try {
+			write(new byte[] {(byte)0x85});
+		} catch (SerialPortException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	int speed = 100;
 	@Override
 	public int getSpeed() {

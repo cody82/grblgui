@@ -48,8 +48,8 @@ public class JogWindow extends Window {
 		}
 	}
 	
-	float getStep() {
-		return Float.parseFloat(step.getText());
+	int getStep() {
+		return Integer.parseInt(step.getText());
 	}
 	float getXpos() {
 		return Float.parseFloat(x.getText());
@@ -65,14 +65,19 @@ public class JogWindow extends Window {
 			return;
 		if(mainscreen.grbl.isStreaming())
 			return;
-		float step = getStep();
-		Vector3 v = mainscreen.grbl.getToolPosition().cpy();
-		v.add(x * step, y * step, z * step);
-		mainscreen.grbl.send(("G0X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
+		int step = getStep();
+		Vector3 v = new Vector3(x * 100, y * 100, z * 100);
+		mainscreen.grbl.send(("$J=G91F" + Integer.toString(step) + "X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
 		//grbl.send(("G1" + "\n").getBytes());
 		
 	}
-	
+	void jogStop() {
+		if(mainscreen.grbl == null)
+			return;
+		if(mainscreen.grbl.isStreaming())
+			return;
+		mainscreen.grbl.jogCancel();
+	}
 
 	void go() {
 		if(mainscreen.grbl == null)
@@ -127,8 +132,8 @@ public class JogWindow extends Window {
 		add(table1).expand().fill();
 		row();
 		
-		table1.add(new Label("step", skin)).fill().expand();
-		table1.add(step = new TextField("1.000", skin)).fill().expand();
+		table1.add(new Label("Speed", skin)).fill().expand();
+		table1.add(step = new TextField("100", skin)).fill().expand();
 		table1.row();
 		table1.add(new Label("X", skin)).fill().expand();
 		table1.add(x = new TextField("0.000", skin)).fill().expand();
@@ -151,6 +156,10 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(0,0,1);
     				return true;
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
             	}});
 		
 		final TextButton yp = new TextButton("Y+", skin);
@@ -161,7 +170,13 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(0,1,0);
     				return true;
-            	}});
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
+            	}
+            		}
+            	);
 		
 		table2.add(new Label("", skin)).fill().expand();
 		table2.row();
@@ -174,6 +189,10 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(-1,0,0);
     				return true;
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
             	}});
 		
 		table2.add(new Label("", skin)).fill().expand();
@@ -186,6 +205,10 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(1,0,0);
     				return true;
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
             	}});
 		
 		table2.row();
@@ -198,6 +221,10 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(0,0,-1);
     				return true;
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
             	}});
 		
 		final TextButton ym = new TextButton("Y-", skin);
@@ -208,6 +235,10 @@ public class JogWindow extends Window {
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
                 		jog(0,-1,0);
     				return true;
+            	}
+            		@Override
+            	public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+                		jogStop();
             	}});
 	}
 
