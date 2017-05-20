@@ -234,8 +234,6 @@ public class GrblStream implements GrblStreamInterface
 										System.out.println("Unlocked!");
 									} else {
 										System.out.println("GrblReader Error: "+ output);
-										//System.exit(2);
-										//return;
 									}
 
 									if(listener != null && print)
@@ -344,12 +342,6 @@ public class GrblStream implements GrblStreamInterface
 								} else {
 	                        		System.out.println("GrblStream Error: " + output);
 	                        		errors++;
-	                        		if(errors != 1) {
-		                        		System.exit(2);
-		                        		return;
-	                        		}
-	                        		else
-	                        			System.out.println("GrblStream Error ignored.");
 	                        	}
                         	}
                         	if(exit)
