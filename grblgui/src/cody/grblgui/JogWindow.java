@@ -166,25 +166,25 @@ public class JogWindow extends Window {
 		table2.add(new Label("", skin)).fill().expand();
 		table2.row();
 		
-		final TextButton xp = new TextButton("X+", skin);
+		final TextButton xp = new TextButton("X-", skin);
 		table2.add(xp).fill().expand();
 		xp.addListener(
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                		jog(1,0,0);
+                		jog(-1,0,0);
     				return true;
             	}});
 		
 		table2.add(new Label("", skin)).fill().expand();
 		
-		final TextButton xm = new TextButton("X-", skin);
+		final TextButton xm = new TextButton("X+", skin);
 		table2.add(xm).fill().expand();
 		xm.addListener(
             	new InputListener() {
             		@Override
             	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                		jog(-1,0,0);
+                		jog(1,0,0);
     				return true;
             	}});
 		
