@@ -6,8 +6,7 @@
 * OpenGL 2.0+
 * Grbl 1.1+
 
-##Download
-
+## Download
 https://github.com/cody82/grblgui/releases/download/v0.4.0/grblgui.zip
 
 ## Usage
