@@ -209,7 +209,13 @@ public class GrblStream implements GrblStreamInterface
 											getWorldCoordinateOffset().y = Float.parseFloat(s2[1]);
 											getWorldCoordinateOffset().z = Float.parseFloat(s2[2]);
 										}
-
+										if(output.contains("Ov:"))
+										{
+											String ov = output.substring(output.indexOf("Ov:") + 3);
+											String[] s2 = ov.split("[,>]");
+											speed = Integer.parseInt(s2[0]);
+										}
+										
 										getToolPosition().x = getMachinePosition().x - getWorldCoordinateOffset().x;
 										getToolPosition().y = getMachinePosition().y - getWorldCoordinateOffset().y;
 										getToolPosition().z = getMachinePosition().z - getWorldCoordinateOffset().z;
@@ -290,7 +296,7 @@ public class GrblStream implements GrblStreamInterface
                 currentLine = 0;
                 int errors = 0;
             	lines:for(GCodeLine line : gcode.gcode) {
-            		String line_string = line.getContent(speed);
+            		String line_string = line.getContent();
             		for(GCodeCommand cmd : line.commands) {
             			if(cmd.cmd == 'T' || cmd.cmd == 'M') {
                     		System.out.println("GrblStream ignored line: " + line_string);
@@ -331,6 +337,12 @@ public class GrblStream implements GrblStreamInterface
 										getWorldCoordinateOffset().x = Float.parseFloat(s2[0]);
 										getWorldCoordinateOffset().y = Float.parseFloat(s2[1]);
 										getWorldCoordinateOffset().z = Float.parseFloat(s2[2]);
+									}
+									if(output.contains("Ov:"))
+									{
+										String ov = output.substring(output.indexOf("Ov:") + 3);
+										String[] s2 = ov.split("[,>]");
+										speed = Integer.parseInt(s2[0]);
 									}
 
 									getToolPosition().x = getMachinePosition().x - getWorldCoordinateOffset().x;
@@ -442,16 +454,31 @@ public class GrblStream implements GrblStreamInterface
 		this.machinePosition = machinePosition;
 	}
 	@Override
-	public void setSpeed(int percent) {
-		speed = percent;
-		if(gcode == null)
-			return;
-		GCodeLine line = gcode.gcode.get(streamer.currentLine);
-		if(line == null)
-			return;
-		int current_feedrate = (int)line.feedrate;
-		int new_feedrate = current_feedrate * percent / 100;
-		send(("F" + Integer.toString(new_feedrate)+"\n").getBytes());
+	public void feedOverride(GrblFeedOverride percent) {
+		byte b;
+		switch(percent) {
+		case Plus10:
+			b = (byte)0x91;
+			break;
+		case Plus1:
+			b = (byte)0x93;
+			break;
+		case Minus10:
+			b = (byte)0x92;
+			break;
+		case Minus1:
+			b = (byte)0x94;
+			break;
+		default:
+			b = (byte)0x90;
+			break;
+		}
+		try {
+			write(new byte[] {(byte)b});
+		} catch (SerialPortException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 

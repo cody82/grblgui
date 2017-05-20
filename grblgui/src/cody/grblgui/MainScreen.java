@@ -147,7 +147,7 @@ public class MainScreen implements Screen {
 				if(lastline < 0)
 					lastline = 0;
 				for(int i = lastline; i <= currentline && i < file.gcode.size(); ++i) {
-					console.writeLine(file.gcode.get(i).getContent(grbl.getSpeed()));
+					console.writeLine(file.gcode.get(i).getContent());
 				}
 				lastline = currentline + 1;
 			}

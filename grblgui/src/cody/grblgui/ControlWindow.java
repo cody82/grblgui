@@ -5,12 +5,14 @@ import java.io.IOException;
 
 import cody.gcode.GCodeFile;
 import cody.gcode.GCodeParser;
+import cody.grbl.GrblFeedOverride;
 import cody.grbl.GrblStreamFactory;
 import cody.grbl.GrblStreamInterface;
 import cody.grbl.GrblStreamListener;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -51,6 +53,18 @@ public class ControlWindow extends Window{
 			hold_button.setText("Disable feed hold");
 			hold_button.setColor(1, 0, 0, 1);
 		}
+	}
+
+	@Override
+	public void draw(Batch arg0, float arg1) {
+		if(grbl != null) {
+			int s = grbl.getSpeed();
+			String tmp = Integer.toString(s);
+			if(!tmp.equals(speed.getText()))
+				speed.setText(tmp);
+		}
+		
+		super.draw(arg0, arg1);
 	}
 	
 	public ControlWindow(Skin skin, GrblStreamInterface _grbl, MainScreen _mainscreen) {
@@ -258,8 +272,8 @@ public class ControlWindow extends Window{
             	}});
 
         
-        speed = new TextField("100",skin);
-        final TextButton speed_button = new TextButton("Set speed [%]", skin);
+        speed = new TextField("",skin);
+        final TextButton speed_button = new TextButton("+10%", skin);
         speed_button.addListener(
             	new InputListener() {
             		@Override
@@ -268,8 +282,19 @@ public class ControlWindow extends Window{
             				mainscreen.showMessage("Open a serial port first.", "Error");
             				return true;
             			}
-            			int speedfactor = Integer.parseInt(speed.getText());
-        				grbl.setSpeed(speedfactor);
+        				grbl.feedOverride(GrblFeedOverride.Plus10);
+    				return true;
+            	}});
+        final TextButton speed2_button = new TextButton("-10%", skin);
+        speed2_button.addListener(
+            	new InputListener() {
+            		@Override
+            	public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+            			if(grbl == null) {
+            				mainscreen.showMessage("Open a serial port first.", "Error");
+            				return true;
+            			}
+        				grbl.feedOverride(GrblFeedOverride.Minus10);
     				return true;
             	}});
 
@@ -299,6 +324,7 @@ public class ControlWindow extends Window{
         row();
         Table t2 = new Table();
         t2.add(speed_button).fill().expand();
+        t2.add(speed2_button).fill().expand();
         t2.add(speed).width(50);
         add(t2).fill().expand();
         row();

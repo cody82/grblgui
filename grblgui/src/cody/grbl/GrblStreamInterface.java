@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Vector3;
 
 import cody.gcode.GCodeFile;
 
+
 public interface GrblStreamInterface {
 
 	boolean isStreaming();
@@ -28,7 +29,8 @@ public interface GrblStreamInterface {
 	
 	void setListener(GrblStreamListener listener);
 	
-	void setSpeed(int percent);
+	void feedOverride(GrblFeedOverride percent);
+	
 	int getSpeed();
 	String getStatus();
 }
