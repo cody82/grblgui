@@ -39,6 +39,7 @@ public class GrblStream implements GrblStreamInterface
     SerialPort serialPort;
     private Vector3 toolPosition = new Vector3();
     private Vector3 machinePosition = new Vector3();
+    private Vector3 worldCoordinateOffset = new Vector3();
     private Streamer streamer;
     Updater updater;
     Reader reader;
@@ -193,34 +194,34 @@ public class GrblStream implements GrblStreamInterface
 									
 									boolean print = true;
 									if (output.equals("ok")) {
-									} else if (output.contains("MPos:[")) {
-										String mpos = output.substring(output.indexOf("MPos:[") + 6);
-										String[] s = mpos.split("[\\]\\[xyz,\\s]");
-										getMachinePosition().x = Float.parseFloat(s[0]);
-										getMachinePosition().y = Float.parseFloat(s[1]);
-										getMachinePosition().z = Float.parseFloat(s[2]);
-										String wpos = output.substring(output.indexOf("WPos:[") + 6);
-										String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
-										getToolPosition().x = Float.parseFloat(s2[0]);
-										getToolPosition().y = Float.parseFloat(s2[1]);
-										getToolPosition().z = Float.parseFloat(s2[2]);
-										print = false;
-									} else if (output.startsWith("<")) {
+									}
+									else if (output.startsWith("<")) {
 										String mpos = output.substring(output.indexOf("MPos:") + 5);
-										String[] s = mpos.split(",");
+										String[] s = mpos.split("[,|]");
 										getMachinePosition().x = Float.parseFloat(s[0]);
 										getMachinePosition().y = Float.parseFloat(s[1]);
 										getMachinePosition().z = Float.parseFloat(s[2]);
-										String wpos = output.substring(output.indexOf("WPos:") + 5);
-										String[] s2 = wpos.split("[,>]");
-										getToolPosition().x = Float.parseFloat(s2[0]);
-										getToolPosition().y = Float.parseFloat(s2[1]);
-										getToolPosition().z = Float.parseFloat(s2[2]);
+										if(output.contains("WCO:"))
+										{
+											String wco = output.substring(output.indexOf("WCO:") + 4);
+											String[] s2 = wco.split("[,>]");
+											getWorldCoordinateOffset().x = Float.parseFloat(s2[0]);
+											getWorldCoordinateOffset().y = Float.parseFloat(s2[1]);
+											getWorldCoordinateOffset().z = Float.parseFloat(s2[2]);
+										}
+
+										getToolPosition().x = getMachinePosition().x - getWorldCoordinateOffset().x;
+										getToolPosition().y = getMachinePosition().y - getWorldCoordinateOffset().y;
+										getToolPosition().z = getMachinePosition().z - getWorldCoordinateOffset().z;
 										
-										setStatus(output.substring(1, output.indexOf(',')));
+										setStatus(output.substring(1, output.indexOf('|')));
 										
 										print = false;
 									} else if (output.startsWith("Grbl ")) {
+										if(!output.startsWith("Grbl 1.")) {
+											listener.received("Wrong Grbl version. Should be 1.1.");
+											System.out.println("Wrong Grbl version. Should be 1.1.");
+										}
 									} else if (output.startsWith("'$' ")) {
 									} else if (output.startsWith("$")) {
 									} else if (output.startsWith("~")) {
@@ -318,29 +319,28 @@ public class GrblStream implements GrblStreamInterface
 	                        	if(output.equals("ok")) {
 	                        		ok = true;
 	                        		break;
-	                        	} else if (output.contains("MPos:[")) {
-									String mpos = output.substring(output.indexOf("MPos:[") + 6);
-									String[] s = mpos.split("[\\]\\[xyz,\\s]");
-									getMachinePosition().x = Float.parseFloat(s[0]);
-									getMachinePosition().y = Float.parseFloat(s[1]);
-									getMachinePosition().z = Float.parseFloat(s[2]);
-									String wpos = output.substring(output.indexOf("WPos:[") + 6);
-									String[] s2 = wpos.split("[\\]\\[xyz,\\s]");
-									getToolPosition().x = Float.parseFloat(s2[0]);
-									getToolPosition().y = Float.parseFloat(s2[1]);
-									getToolPosition().z = Float.parseFloat(s2[2]);
-								} else if (output.startsWith("<")) {
+	                        	} else if (output.startsWith("<")) {
+
 									String mpos = output.substring(output.indexOf("MPos:") + 5);
-									String[] s = mpos.split(",");
+									String[] s = mpos.split("[,|]");
 									getMachinePosition().x = Float.parseFloat(s[0]);
 									getMachinePosition().y = Float.parseFloat(s[1]);
 									getMachinePosition().z = Float.parseFloat(s[2]);
-									String wpos = output.substring(output.indexOf("WPos:") + 5);
-									String[] s2 = wpos.split("[,>]");
-									getToolPosition().x = Float.parseFloat(s2[0]);
-									getToolPosition().y = Float.parseFloat(s2[1]);
-									getToolPosition().z = Float.parseFloat(s2[2]);
-									setStatus(output.substring(1, output.indexOf(',')));
+									if(output.contains("WCO:"))
+									{
+										String wco = output.substring(output.indexOf("WCO:") + 4);
+										String[] s2 = wco.split("[,>]");
+										getWorldCoordinateOffset().x = Float.parseFloat(s2[0]);
+										getWorldCoordinateOffset().y = Float.parseFloat(s2[1]);
+										getWorldCoordinateOffset().z = Float.parseFloat(s2[2]);
+									}
+
+									getToolPosition().x = getMachinePosition().x - getWorldCoordinateOffset().x;
+									getToolPosition().y = getMachinePosition().y - getWorldCoordinateOffset().y;
+									getToolPosition().z = getMachinePosition().z - getWorldCoordinateOffset().z;
+									
+									setStatus(output.substring(1, output.indexOf('|')));
+									
 								} else {
 	                        		System.out.println("GrblStream Error: " + output);
 	                        		errors++;
@@ -442,6 +442,9 @@ public class GrblStream implements GrblStreamInterface
 	}
 	public Vector3 getMachinePosition() {
 		return machinePosition;
+	}
+	public Vector3 getWorldCoordinateOffset(){
+		return worldCoordinateOffset;
 	}
 	public void setMachinePosition(Vector3 machinePosition) {
 		this.machinePosition = machinePosition;
