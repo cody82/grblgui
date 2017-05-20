@@ -1,12 +1,14 @@
-##Download
-https://github.com/cody82/grblgui/releases/download/v0.3.5/grblgui.zip
-
 ## Screenshots
 ![screenshot](grblgui.jpg)
 
 ## Requirements
-* Java 1.7
-* OpenGL 2.0
+* Java 1.7+
+* OpenGL 2.0+
+* Grbl 1.1+
+
+##Download
+
+https://github.com/cody82/grblgui/releases/download/v0.4.0/grblgui.zip
 
 ## Usage
 Start the Program: `java -jar grblgui.jar [<your g-code file or directory> [<arduino COM-port>]]`
@@ -20,3 +22,4 @@ and in `grblgui-gcode` next to `grblgui.jar`.
 For compiling you need:
 * Eclipse 3.6(?)
 * Eclipse Scala plugin with Scala 2.10
+* Or: Scala IDE from http://scala-ide.org/
