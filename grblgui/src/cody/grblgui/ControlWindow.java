@@ -216,7 +216,7 @@ public class ControlWindow extends Window{
         final SelectBox<String> port_select = new SelectBox<String>(skin);
         port_select.setItems(GrblStreamFactory.ports());
         final SelectBox<String> baudrate = new SelectBox<String>(skin);
-        baudrate.setItems(new String[]{"9600", "19200", "115200"});
+        baudrate.setItems(new String[]{"115200"});
         final TextButton port_button = new TextButton("Open port", skin);
         port_button.addListener(
             	new InputListener() {
