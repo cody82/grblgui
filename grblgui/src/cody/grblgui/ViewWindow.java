@@ -20,7 +20,7 @@ public class ViewWindow extends Window {
 	public ViewWindow(Skin skin, MainScreen _mainscreen) {
 		super("View", skin);
 		
-		setBounds(0, 400, 200, 200);
+		setBounds(0, 500, 200, 300);
 		setColor(0, 1, 0, 0.8f);
 		
 		mainscreen = _mainscreen;
@@ -33,7 +33,7 @@ public class ViewWindow extends Window {
                 		mainscreen.draw_part = !draw_part.isChecked();
     				return true;
             	}});
-		add(draw_part).fill().expand();
+		add(draw_part);
 
 		row();
 		final CheckBox ztest = new CheckBox("Z-Test", skin);
@@ -44,12 +44,13 @@ public class ViewWindow extends Window {
                 		mainscreen.ztest = !ztest.isChecked();
     				return true;
             	}});
-		add(ztest).fill().expand();
+		add(ztest);
 		
 		row();
 		
 		show_console = new CheckBox("Show console", skin);
-		show_console.setChecked(true);
+		show_console.setChecked(false);
+		mainscreen.console.setVisible(show_console.isChecked());
 		show_console.addListener(
             	new InputListener() {
             		@Override
@@ -57,7 +58,7 @@ public class ViewWindow extends Window {
                 		mainscreen.console.setVisible(!show_console.isChecked());
     				return true;
             	}});
-		add(show_console).fill().expand();
+		add(show_console);
 		row();
 		
 		final TextField h = new TextField("400", skin);
@@ -73,10 +74,10 @@ public class ViewWindow extends Window {
 		add(workspace_size);
 		row();
 
-        Table t = new Table();
-        t.add(w).fill().expand();
-        t.add(h).fill().expand();
-        add(t).fill().expand();
+        //Table t = new Table();
+        add(w).width(80);
+        add(h).width(80);
+        //add(t).fill().expand();
 		row();
 		
 		add(new Label("Camera", skin)).fill().expand();

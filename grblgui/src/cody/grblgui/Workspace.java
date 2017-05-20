@@ -36,6 +36,8 @@ public class Workspace {
 	}
 	
 	public void setSize(float w, float h) {
+		w/=2;
+		h/=2;
 		float[] verts = new float[]{
 				-w, -h, 0, new Color(1,1,1,1).toFloatBits(),
 				-w, h, 0, new Color(1,1,1,1).toFloatBits(),
