@@ -293,7 +293,7 @@ public class MainScreen implements Screen {
 		workspace = new Workspace(-150,150,-200,200,0,50);
 		//camera = new OrthographicCamera(800,450);
 		camera = new PerspectiveCamera();
-		camera.translate(150, 150, 150);
+		camera.translate(0, -400, 150);
 		camera.up.x = 0;
 		camera.up.y = 0;
 		camera.up.z = 1;

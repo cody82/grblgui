@@ -32,6 +32,7 @@ public interface GrblStreamInterface {
 	void feedOverride(GrblFeedOverride percent);
 	
 	void jogCancel();
+	void jogStart(int speed, float x, float y, float z);
 	
 	int getSpeed();
 	String getStatus();

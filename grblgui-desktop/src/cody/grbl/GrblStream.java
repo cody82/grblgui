@@ -59,7 +59,11 @@ public class GrblStream implements GrblStreamInterface
     	}
     }
     synchronized void write(byte[] data) throws SerialPortException {
-    	serialPort.writeBytes(data);
+    	if(!serialPort.writeBytes(data)) {
+			System.out.println("serialPort.writeBytes failed.");
+			System.exit(13);
+    		
+    	}
     }
     
     synchronized public void send(byte[] data) {
@@ -194,6 +198,12 @@ public class GrblStream implements GrblStreamInterface
 									
 									boolean print = true;
 									if (output.equals("ok")) {
+										waitForJogOk = false;
+										if(sendJogCancelOnOk) {
+											System.out.println("Send jog cancel on ok.");
+											jogCancel();
+											sendJogCancelOnOk = false;
+										}
 									}
 									else if (output.startsWith("<")) {
 										String mpos = output.substring(output.indexOf("MPos:") + 5);
@@ -482,14 +492,27 @@ public class GrblStream implements GrblStreamInterface
 		
 	}
 
+	boolean sendJogCancelOnOk = false;
 	@Override
 	public void jogCancel() {
-		try {
-			write(new byte[] {(byte)0x85});
-		} catch (SerialPortException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		System.out.println("Jog cancel.");
+		if(waitForJogOk){
+			sendJogCancelOnOk = true;
+			System.out.println("Waiting for ok.");
 		}
+		else {
+			send(new byte[] {(byte)0x85});
+		}
+	}
+
+	boolean waitForJogOk = false;
+	@Override
+	public void jogStart(int speed, float x, float y, float z) {
+		Vector3 v = new Vector3(x * 100, y * 100, z * 100);
+
+		System.out.println("Jog start.");
+		send(("$J=G91F" + Integer.toString(speed) + "X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
+		waitForJogOk = true;
 	}
 	
 	int speed = 100;

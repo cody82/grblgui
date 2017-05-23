@@ -60,14 +60,16 @@ public class JogWindow extends Window {
 	float getZpos() {
 		return Float.parseFloat(z.getText());
 	}
+
+
 	void jog(float x, float y, float z) {
 		if(mainscreen.grbl == null)
 			return;
 		if(mainscreen.grbl.isStreaming())
 			return;
 		int step = getStep();
-		Vector3 v = new Vector3(x * 100, y * 100, z * 100);
-		mainscreen.grbl.send(("$J=G91F" + Integer.toString(step) + "X" + Float.toString(v.x) + "Y" + Float.toString(v.y) + "Z" + Float.toString(v.z) + "\n").getBytes());
+		
+		mainscreen.grbl.jogStart(step, x, y, z);
 		//grbl.send(("G1" + "\n").getBytes());
 		
 	}
