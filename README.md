@@ -7,7 +7,7 @@
 * Grbl 1.1+
 
 ## Download
-https://github.com/cody82/grblgui/releases/download/v0.4.1/grblgui.zip
+https://github.com/cody82/grblgui/releases/download/v0.4.2/grblgui.zip
 
 ## Usage
 Start the Program: `java -jar grblgui.jar [<your g-code file or directory> [<arduino COM-port>]]`
