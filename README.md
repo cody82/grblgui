@@ -19,6 +19,4 @@ and in `grblgui-gcode` next to `grblgui.jar`.
 
 ## Development
 For compiling you need:
-* Eclipse 3.6(?)
-* Eclipse Scala plugin with Scala 2.10
-* Or: Scala IDE from http://scala-ide.org/
+* Eclipse >= 3.6

@@ -1,6 +1,6 @@
 package cody.grblgui;
 
-public abstract class SimulationConverter {
+public class SimulationConverter {
 	public static SimulationConverter instance;
 	
 	public static Part convert(Toolpath path, ToolInfo info){
@@ -11,6 +11,12 @@ public abstract class SimulationConverter {
 	}
 	
 	public Part convertImpl(Toolpath path, ToolInfo info){
-		return null;
+		Simulation sim = new Simulation(300, 400, 50, 1f);
+		sim.simulate(path, info);
+		//Tuple2<Object, Object> tmp = sim.getZminmax();
+		//float min = (float)tmp._1;
+		//float max = (float)tmp._2;
+
+		return new SimulationPart(sim);
 	}
 }

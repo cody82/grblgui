@@ -6,7 +6,6 @@ package cody.grblgui.desktop;
 import cody.grbl.GrblFactory;
 import cody.grbl.GrblStreamFactory;
 import cody.grblgui.Main;
-import cody.grblgui.ScalaSimulationConverter;
 import cody.grblgui.SimulationConverter;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -34,7 +33,7 @@ public class GrblGuiMainDesktop {
 		}
 		
 		GrblStreamFactory.instance = new GrblFactory();
-		SimulationConverter.instance = new ScalaSimulationConverter();
+		SimulationConverter.instance = new SimulationConverter();
 		
 		Main main = new Main(dir, port);
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
